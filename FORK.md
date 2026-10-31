@@ -55,8 +55,35 @@ or persistence, no shell invocation, and no injection APIs.
 | **Opaque bundled binaries** — upstream's `Win_Binaries` release has 15 `.exe` with no versions, no source URLs and no hashes. | `tools/deps.lock.json` pins every bundled tool by SHA-256, fetched from its own official project. A mismatch aborts the build. Only the 6 tools the code actually calls are bundled. |
 | **An 1800-character base64 blob in the source** — benign (it decodes to a 48×48 PNG) but indistinguishable at a glance from a packed payload. | Removed. The icon is now `src/assets/coffee.png`, a real file. `base64` and `BytesIO` are no longer imported by the GUI. |
 
-What this does **not** promise: an unsigned binary will still collect some
-machine-learning detections. Code signing is the part that actually ends it.
+### Measured result
+
+Both artefacts of this fork's build were submitted to VirusTotal on
+2026-10-31 and scanned against the same engine set as the upstream release:
+
+| Artefact | sha256 | Detections |
+|---|---|---|
+| upstream v1.9.7 `MinimalPDF_Compress.exe` (onefile) | `fc96099246…` | **38 / 71** |
+| this fork `MinimalPDF_Compress.exe` (standalone) | `ac7e6870e5…` | **1 / 71** |
+| this fork `MinimalPDF_Compress-1.10.0-win64.zip` | `39d8d6bc3d…` | **1 / 68** |
+
+The single remaining hit on the executable is Microsoft,
+`Trojan:Win32/Wacatac.C!ml` — a machine-learning signature, which is what an
+unsigned binary attracts. On the zip the only hit is Zillya,
+`Trojan.AgentAGen.Win64.25905`, and Microsoft is clean there.
+
+Everything that flagged the onefile build now returns clean: ESET, Alibaba
+(both of which previously named Nuitka outright), Symantec, SentinelOne,
+Sophos, Avast, AVG, BitDefender and its five OEM licensees, Fortinet, Google,
+Rising, GData and Arcabit.
+
+Windows Defender on a real endpoint, engine 1.1.26100.4 with signatures
+1.463.63.0 and real-time protection on, scans the whole 120 MB build folder
+clean: `found no threats`. Note this disagrees with Microsoft's VirusTotal
+engine, which runs without the cloud and reputation context an endpoint has.
+
+What this still does **not** promise: an unsigned binary keeps attracting
+machine-learning verdicts, and SmartScreen reputation is a separate layer that
+only builds up over downloads. Code signing is the part that actually ends it.
 
 ## 2. Ghostscript now runs sandboxed
 
