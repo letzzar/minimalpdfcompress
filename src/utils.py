@@ -9,12 +9,38 @@ import pikepdf
 
 from constants import ToolNotFound, ProcessingError
 
+APP_DIR_NAME = "MinimalPDF Compress"
+
+def app_dir():
+    if getattr(sys, 'frozen', False) or hasattr(sys, '_MEIPASS') or '__compiled__' in globals():
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
 def resource_path(relative_path):
+    roots = []
+    meipass = getattr(sys, '_MEIPASS', None)
+    if meipass: roots.append(Path(meipass))
+    roots.append(Path(__file__).resolve().parent)
+    roots.append(app_dir())
+    for root in roots:
+        candidate = root / relative_path
+        if candidate.exists(): return candidate
+    return roots[0] / relative_path
+
+def user_config_path(name):
+    portable = app_dir() / name
+    if portable.exists(): return portable
+    if sys.platform == "win32":
+        base = Path(os.environ.get('APPDATA') or Path.home() / 'AppData' / 'Roaming')
+    else:
+        base = Path(os.environ.get('XDG_CONFIG_HOME') or Path.home() / '.config')
+    target = base / APP_DIR_NAME
     try:
-        base_path = Path(sys._MEIPASS)
-    except AttributeError:
-        base_path = Path(__file__).parent
-    return base_path / relative_path
+        target.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        logging.warning(f"Could not create config directory {target}: {e}")
+        return portable
+    return target / name
 
 def find_executable(name, tool_name):
     exe_name = f"{name}.exe" if sys.platform == "win32" else name
@@ -50,10 +76,12 @@ def get_pdf_metadata(file_path):
         return {'name': Path(file_path).name, 'pages': 'N/A', 'size': 'N/A'}
 
 def run_command(command, check=True):
-    use_shell = isinstance(command, str)
+    if isinstance(command, (str, bytes)):
+        raise ProcessingError("Internal error: commands must be an argument list, never a string.")
+    command = [str(part) for part in command]
     logging.info(f"Executing command: {command}")
     try:
-        kwargs = { 'stdin': subprocess.DEVNULL, 'check': check, 'capture_output': True, 'text': True, 'encoding': 'utf-8', 'errors': 'ignore', 'shell': use_shell }
+        kwargs = { 'stdin': subprocess.DEVNULL, 'check': check, 'capture_output': True, 'text': True, 'encoding': 'utf-8', 'errors': 'ignore', 'shell': False }
         if sys.platform == "win32": kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
         result = subprocess.run(command, **kwargs)
         if result.stderr:
@@ -71,7 +99,7 @@ def run_command(command, check=True):
         logging.error(f"Command failed.\nSTDOUT: {e.stdout}\nSTDERR: {e.stderr}")
         raise ProcessingError(f"Tool failed: {e.stderr.strip() if e.stderr else 'Unknown Error'}")
     except FileNotFoundError as e:
-        logging.error(f"Command not found: {command if use_shell else command[0]}")
+        logging.error(f"Command not found: {command[0]}")
         raise ProcessingError(f"Command not found: {e}.")
     except Exception as e:
         logging.error(f"Unexpected error: {e}")

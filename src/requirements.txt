@@ -1,2 +1,6 @@
-pip install pikepdf pillow pyoxipng windnd 
-pip install nuitka zstandard
+# Runtime dependencies.
+#   python -m pip install -r src/requirements.txt
+pikepdf==10.17.0
+pillow==13.0.0
+pyoxipng==9.1.1
+windnd==1.0.7 ; sys_platform == "win32"
