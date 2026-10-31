@@ -1,19 +1,32 @@
 {
   "_comment": [
-    "Every third-party binary this application bundles, pinned by SHA-256.",
+    "Every third-party binary this application bundles, per platform, pinned by SHA-256.",
     "",
-    "Upstream ships these from a 'Win_Binaries' release tag with no version numbers,",
-    "no upstream URLs and no checksums, so a user cannot tell what is inside the app.",
-    "This fork fetches each tool from its own official project instead and refuses to",
+    "Upstream ships Windows binaries from a 'Win_Binaries' release tag with no version",
+    "numbers, no upstream URLs and no checksums, so a user cannot tell what is inside",
+    "the app. This fork fetches each tool from its own official project and refuses to",
     "build if a download does not match the hash recorded here.",
     "",
+    "Platform keys are <os>-<machine>: windows-x86_64, linux-x86_64, linux-aarch64,",
+    "macos-x86_64, macos-aarch64. fetch_deps.py picks the ones matching the host, or",
+    "whatever --platform names.",
+    "",
+    "Not every tool is available as an official prebuilt binary on every platform.",
+    "Artifex publishes no Linux or macOS Ghostscript binaries at all, and pngquant and",
+    "jpegoptim publish none either. On those platforms the app falls back to whatever is",
+    "on PATH (see find_executable in src/utils.py), so install them with the system",
+    "package manager -- README.md has the one-liners. Ghostscript is the only one that",
+    "is genuinely required.",
+    "",
     "A null sha256 means 'not pinned yet'. Run:  python tools/fetch_deps.py --update-lock",
-    "once, check the hash it records against the publisher, then commit it. CI runs",
-    "without --update-lock, so an unpinned or changed dependency fails the build."
+    "(add --pin-only --platform all to pin every platform from one machine), check the",
+    "hashes against the publishers, then commit. CI runs without --update-lock, so an",
+    "unpinned or changed dependency fails the build."
   ],
   "deps": [
     {
       "name": "ghostscript",
+      "platform": "windows-x86_64",
       "version": "10.08.0",
       "homepage": "https://www.ghostscript.com/",
       "license": "AGPL-3.0",
@@ -46,6 +59,7 @@
     },
     {
       "name": "cpdf",
+      "platform": "windows-x86_64",
       "version": "git-4d44a0da",
       "homepage": "https://github.com/coherentgraphics/cpdf-binaries",
       "license": "dual: free for non-commercial use, see upstream LICENSE.md",
@@ -60,7 +74,76 @@
       ]
     },
     {
+      "name": "cpdf",
+      "platform": "linux-x86_64",
+      "version": "git-4d44a0da",
+      "homepage": "https://github.com/coherentgraphics/cpdf-binaries",
+      "license": "dual: free for non-commercial use, see upstream LICENSE.md",
+      "url": "https://raw.githubusercontent.com/coherentgraphics/cpdf-binaries/4d44a0da36bd9acd21917c0bd437d542a91c14d1/Linux-Intel-64bit/cpdf",
+      "sha256": "37511a498ae58df68ba1f52003435743f23c285f634f552da267df1b74e822b9",
+      "archive": "raw",
+      "members": [
+        {
+          "from": ".",
+          "to": "bin/cpdf",
+          "executable": true
+        }
+      ]
+    },
+    {
+      "name": "cpdf",
+      "platform": "linux-aarch64",
+      "version": "git-4d44a0da",
+      "homepage": "https://github.com/coherentgraphics/cpdf-binaries",
+      "license": "dual: free for non-commercial use, see upstream LICENSE.md",
+      "url": "https://raw.githubusercontent.com/coherentgraphics/cpdf-binaries/4d44a0da36bd9acd21917c0bd437d542a91c14d1/Linux-ARM-64bit/cpdf",
+      "sha256": "3b8bbe53f47902ae90b13222881fbe00928a63b5553dfafc3c3901c13b62848c",
+      "archive": "raw",
+      "members": [
+        {
+          "from": ".",
+          "to": "bin/cpdf",
+          "executable": true
+        }
+      ]
+    },
+    {
+      "name": "cpdf",
+      "platform": "macos-x86_64",
+      "version": "git-4d44a0da",
+      "homepage": "https://github.com/coherentgraphics/cpdf-binaries",
+      "license": "dual: free for non-commercial use, see upstream LICENSE.md",
+      "url": "https://raw.githubusercontent.com/coherentgraphics/cpdf-binaries/4d44a0da36bd9acd21917c0bd437d542a91c14d1/MacOS-Intel/cpdf",
+      "sha256": "82cf5a17d255128910b6715396c553d44e412139829a643d91153c9a39293bc0",
+      "archive": "raw",
+      "members": [
+        {
+          "from": ".",
+          "to": "bin/cpdf",
+          "executable": true
+        }
+      ]
+    },
+    {
+      "name": "cpdf",
+      "platform": "macos-aarch64",
+      "version": "git-4d44a0da",
+      "homepage": "https://github.com/coherentgraphics/cpdf-binaries",
+      "license": "dual: free for non-commercial use, see upstream LICENSE.md",
+      "url": "https://raw.githubusercontent.com/coherentgraphics/cpdf-binaries/4d44a0da36bd9acd21917c0bd437d542a91c14d1/MacOS-ARM/cpdf",
+      "sha256": "6fae72cb16c714463a9ce04b89424e0f6745cdd10206fa1244a09dd6b45442dc",
+      "archive": "raw",
+      "members": [
+        {
+          "from": ".",
+          "to": "bin/cpdf",
+          "executable": true
+        }
+      ]
+    },
+    {
       "name": "oxipng",
+      "platform": "windows-x86_64",
       "version": "10.2.1",
       "homepage": "https://github.com/shssoichiro/oxipng",
       "license": "MIT",
@@ -75,22 +158,76 @@
       ]
     },
     {
-      "name": "jpegoptim",
-      "version": "1.5.6-rel1",
-      "homepage": "https://github.com/XhmikosR/jpegoptim-windows",
-      "license": "GPL-3.0",
-      "url": "https://github.com/XhmikosR/jpegoptim-windows/releases/download/1.5.6-rel1/jpegoptim-1.5.6-rel1-win64-msvc-2022-mozjpeg331-static-ltcg.zip",
-      "sha256": "07cead22ce33de657e6cadf6b84ecbac42debf80247575599db7f35a5f54a336",
-      "archive": "zip",
+      "name": "oxipng",
+      "platform": "linux-x86_64",
+      "version": "10.2.1",
+      "homepage": "https://github.com/shssoichiro/oxipng",
+      "license": "MIT",
+      "url": "https://github.com/shssoichiro/oxipng/releases/download/v10.2.1/oxipng-10.2.1-x86_64-unknown-linux-musl.tar.gz",
+      "sha256": "1813750ef592c5350ca79c88f98b2c0876d05c826dc7156245256d4255c1ad17",
+      "archive": "targz",
       "members": [
         {
-          "from": "**/jpegoptim.exe",
-          "to": "bin/jpegoptim.exe"
+          "from": "**/oxipng",
+          "to": "bin/oxipng",
+          "executable": true
+        }
+      ]
+    },
+    {
+      "name": "oxipng",
+      "platform": "linux-aarch64",
+      "version": "10.2.1",
+      "homepage": "https://github.com/shssoichiro/oxipng",
+      "license": "MIT",
+      "url": "https://github.com/shssoichiro/oxipng/releases/download/v10.2.1/oxipng-10.2.1-aarch64-unknown-linux-musl.tar.gz",
+      "sha256": "ff21aa2a005b324c8dfbdf13cd2f469fb6728b27dacded82635824ecd12e3b35",
+      "archive": "targz",
+      "members": [
+        {
+          "from": "**/oxipng",
+          "to": "bin/oxipng",
+          "executable": true
+        }
+      ]
+    },
+    {
+      "name": "oxipng",
+      "platform": "macos-x86_64",
+      "version": "10.2.1",
+      "homepage": "https://github.com/shssoichiro/oxipng",
+      "license": "MIT",
+      "url": "https://github.com/shssoichiro/oxipng/releases/download/v10.2.1/oxipng-10.2.1-x86_64-apple-darwin.tar.gz",
+      "sha256": "111883bbe42b25e01cb1ca41f39f8094e4830b173f0e42be342ecc4ca48f3131",
+      "archive": "targz",
+      "members": [
+        {
+          "from": "**/oxipng",
+          "to": "bin/oxipng",
+          "executable": true
+        }
+      ]
+    },
+    {
+      "name": "oxipng",
+      "platform": "macos-aarch64",
+      "version": "10.2.1",
+      "homepage": "https://github.com/shssoichiro/oxipng",
+      "license": "MIT",
+      "url": "https://github.com/shssoichiro/oxipng/releases/download/v10.2.1/oxipng-10.2.1-aarch64-apple-darwin.tar.gz",
+      "sha256": "7039fcfc78e8aa1ed2b57d848057a0296f082e92b3e1807ac65402d10d926764",
+      "archive": "targz",
+      "members": [
+        {
+          "from": "**/oxipng",
+          "to": "bin/oxipng",
+          "executable": true
         }
       ]
     },
     {
       "name": "ect",
+      "platform": "windows-x86_64",
       "version": "0.9.5",
       "homepage": "https://github.com/fhanau/Efficient-Compression-Tool",
       "license": "Apache-2.0",
@@ -105,7 +242,58 @@
       ]
     },
     {
+      "name": "ect",
+      "platform": "macos-x86_64",
+      "version": "0.9.5",
+      "homepage": "https://github.com/fhanau/Efficient-Compression-Tool",
+      "license": "Apache-2.0",
+      "url": "https://github.com/fhanau/Efficient-Compression-Tool/releases/download/v0.9.5/ect-0.9.5-mac-x86-64.zip",
+      "sha256": "ecb113c07062c83244569f0a7ed055d57437015d4f1a706e0c736cdc23d8c3e5",
+      "archive": "zip",
+      "members": [
+        {
+          "from": "**/ect",
+          "to": "bin/ect",
+          "executable": true
+        }
+      ]
+    },
+    {
+      "name": "ect",
+      "platform": "macos-aarch64",
+      "version": "0.9.5",
+      "homepage": "https://github.com/fhanau/Efficient-Compression-Tool",
+      "license": "Apache-2.0",
+      "url": "https://github.com/fhanau/Efficient-Compression-Tool/releases/download/v0.9.5/ect-0.9.5-mac-arm64.zip",
+      "sha256": "c4c5046cd2f28b61b6b583fefdcb82aa29ce9ccef97bed189b48c2138cf396f1",
+      "archive": "zip",
+      "members": [
+        {
+          "from": "**/ect",
+          "to": "bin/ect",
+          "executable": true
+        }
+      ]
+    },
+    {
+      "name": "jpegoptim",
+      "platform": "windows-x86_64",
+      "version": "1.5.6-rel1",
+      "homepage": "https://github.com/XhmikosR/jpegoptim-windows",
+      "license": "GPL-3.0",
+      "url": "https://github.com/XhmikosR/jpegoptim-windows/releases/download/1.5.6-rel1/jpegoptim-1.5.6-rel1-win64-msvc-2022-mozjpeg331-static-ltcg.zip",
+      "sha256": "07cead22ce33de657e6cadf6b84ecbac42debf80247575599db7f35a5f54a336",
+      "archive": "zip",
+      "members": [
+        {
+          "from": "**/jpegoptim.exe",
+          "to": "bin/jpegoptim.exe"
+        }
+      ]
+    },
+    {
       "name": "pngquant",
+      "platform": "windows-x86_64",
       "version": "3.0.3",
       "homepage": "https://pngquant.org/",
       "license": "GPL-3.0-or-later",

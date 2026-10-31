@@ -2,8 +2,9 @@ name: build
 
 # Upstream builds the released .exe by hand on a developer machine, so nobody
 # can check that the binary matches the source. This workflow builds it in the
-# open and signs a provenance attestation, so anyone can verify a download with:
-#   gh attestation verify MinimalPDF_Compress-<version>-win64.zip --repo <owner>/<repo>
+# open, for every supported platform, and signs a provenance attestation, so a
+# download can be verified with:
+#   gh attestation verify <file>.zip --repo <owner>/<repo>
 
 on:
   push:
@@ -17,7 +18,26 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    name: ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    # One platform failing should not hide the results for the others.
+    continue-on-error: ${{ matrix.experimental || false }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows-x86_64
+            runner: windows-latest
+          - platform: linux-x86_64
+            runner: ubuntu-latest
+          - platform: linux-aarch64
+            runner: ubuntu-24.04-arm
+          - platform: macos-aarch64
+            runner: macos-latest
+          - platform: macos-x86_64
+            runner: macos-15-intel
+            experimental: true
+
     permissions:
       contents: read
       id-token: write
@@ -31,6 +51,20 @@ jobs:
           python-version: '3.13'
           cache: pip
 
+      # Nuitka's tk-inter plugin needs the Tk headers and libraries present.
+      # Ghostscript is a runtime dependency the end user supplies on these
+      # platforms; it is installed here only so the build can smoke-test.
+      - name: Install system dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            python3-tk tk-dev ghostscript pngquant jpegoptim patchelf
+
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ghostscript pngquant jpegoptim || true
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
@@ -38,13 +72,17 @@ jobs:
 
       - name: Fetch and verify bundled binaries
         # Fails the build if any download does not match tools/deps.lock.json
-        run: python tools/fetch_deps.py
+        run: python tools/fetch_deps.py --platform ${{ matrix.platform }}
 
       - name: Build standalone folder
         run: python build.py --skip-deps
 
+      - name: Smoke test the pipelines
+        run: python tools/smoke_test.py
+
       - name: List what was built
-        run: Get-ChildItem dist | Format-Table Name, Length
+        shell: bash
+        run: ls -la dist/
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v4
@@ -53,7 +91,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: MinimalPDF_Compress-win64
+          name: MinimalPDF_Compress-${{ matrix.platform }}
           path: dist/*.zip
           if-no-files-found: error
 

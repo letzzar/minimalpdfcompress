@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Fetch and verify the third-party binaries that MinimalPDF Compress bundles.
 
-Every dependency is pinned by SHA-256 in deps.lock.json. A download whose hash
-does not match is discarded and the build stops, so anyone can reproduce and
-audit exactly what ends up inside a release. Nothing downloaded is executed.
+Every dependency is pinned by SHA-256 in deps.lock.json, per platform. A
+download whose hash does not match is discarded and the build stops, so anyone
+can reproduce and audit exactly what ends up inside a release. Nothing
+downloaded is executed.
 
-    python tools/fetch_deps.py                 # fetch and verify everything
-    python tools/fetch_deps.py --update-lock   # record hashes not pinned yet
-    python tools/fetch_deps.py --only cpdf     # one dependency
+    python tools/fetch_deps.py                          # this platform
+    python tools/fetch_deps.py --platform linux-aarch64 # another one
+    python tools/fetch_deps.py --update-lock            # record missing hashes
+    python tools/fetch_deps.py --update-lock --pin-only --platform all
+                                                        # pin every platform
 """
 from __future__ import annotations
 
@@ -15,9 +18,12 @@ import argparse
 import hashlib
 import json
 import os
+import platform
 import shutil
+import stat
 import subprocess
 import sys
+import tarfile
 import tempfile
 import urllib.request
 import zipfile
@@ -29,6 +35,24 @@ CACHE_DIR = ROOT / "build" / "deps-cache"
 DEFAULT_DEST = ROOT / "src"
 USER_AGENT = "minimalpdfcompress-build/1.0"
 CHUNK = 1 << 20
+
+OS_NAMES = {"windows": "windows", "linux": "linux", "darwin": "macos"}
+ARCH_NAMES = {"amd64": "x86_64", "x86_64": "x86_64", "arm64": "aarch64", "aarch64": "aarch64"}
+
+# Tools the app can use but that have no official prebuilt binary everywhere.
+# Anything missing from bin/ is looked up on PATH at runtime.
+SYSTEM_TOOLS = {
+    "linux": "sudo apt install ghostscript pngquant jpegoptim    # or your distro's equivalent",
+    "macos": "brew install ghostscript pngquant jpegoptim",
+}
+
+
+def host_platform():
+    os_name = OS_NAMES.get(platform.system().lower())
+    arch = ARCH_NAMES.get(platform.machine().lower())
+    if not os_name or not arch:
+        raise SystemExit(f"Unsupported platform: {platform.system()} {platform.machine()}")
+    return f"{os_name}-{arch}"
 
 
 def sha256_file(path):
@@ -63,19 +87,30 @@ def find_7zip():
     )
 
 
+def _refuse_traversal(names, target):
+    root = target.resolve()
+    for name in names:
+        if not str((target / name).resolve()).startswith(str(root)):
+            raise SystemExit(f"Refusing to unpack path traversal entry: {name}")
+
+
 def unpack(archive_kind, archive, workdir):
-    """Return the directory holding the unpacked payload."""
+    """Return the path holding the unpacked payload."""
     if archive_kind == "raw":
         return archive
     target = workdir / "unpacked"
     target.mkdir(parents=True, exist_ok=True)
     if archive_kind == "zip":
         with zipfile.ZipFile(archive) as bundle:
-            for entry in bundle.namelist():
-                resolved = (target / entry).resolve()
-                if not str(resolved).startswith(str(target.resolve())):
-                    raise SystemExit(f"Refusing to unpack path traversal entry: {entry}")
+            _refuse_traversal(bundle.namelist(), target)
             bundle.extractall(target)
+    elif archive_kind == "targz":
+        with tarfile.open(archive, "r:gz") as bundle:
+            _refuse_traversal(bundle.getnames(), target)
+            try:
+                bundle.extractall(target, filter="data")
+            except TypeError:  # Python < 3.12
+                bundle.extractall(target)
     elif archive_kind == "nsis":
         subprocess.run(
             [find_7zip(), "x", "-y", f"-o{target}", str(archive)],
@@ -94,7 +129,7 @@ def place(dep, source, dest):
         if pattern == ".":
             matches = [source]
         elif any(ch in pattern for ch in "*?"):
-            matches = sorted(source.glob(pattern))
+            matches = sorted(p for p in source.glob(pattern) if p.is_file() or p.is_dir())
         else:
             candidate = source / pattern
             matches = [candidate] if candidate.exists() else []
@@ -108,13 +143,17 @@ def place(dep, source, dest):
             shutil.copytree(origin, target, dirs_exist_ok=True)
         else:
             shutil.copy2(origin, target)
+        if member.get("executable") and os.name != "nt":
+            mode = target.stat().st_mode
+            target.chmod(mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
         placed.append(member["to"])
     return placed
 
 
 def resolve(dep, force):
     """Download the dependency if needed and return (path, sha256)."""
-    cached = CACHE_DIR / f"{dep['name']}-{dep['version']}-{dep['url'].rsplit('/', 1)[-1]}"
+    filename = dep["url"].rsplit("/", 1)[-1]
+    cached = CACHE_DIR / f"{dep['name']}-{dep['platform']}-{dep['version']}-{filename}"
     pinned = dep.get("sha256")
 
     if cached.is_file() and not force:
@@ -131,7 +170,7 @@ def resolve(dep, force):
     if pinned is not None and actual != pinned:
         cached.unlink(missing_ok=True)
         raise SystemExit(
-            f"\nSHA-256 MISMATCH for {dep['name']}\n"
+            f"\nSHA-256 MISMATCH for {dep['name']} ({dep['platform']})\n"
             f"  url      {dep['url']}\n"
             f"  expected {pinned}\n"
             f"  got      {actual}\n"
@@ -147,8 +186,12 @@ def main(argv=None):
     )
     parser.add_argument("--dest", type=Path, default=DEFAULT_DEST,
                         help="where bin/, lib/ and Resource/ are written (default: src/)")
+    parser.add_argument("--platform", default=None, metavar="KEY",
+                        help="platform to fetch for, or 'all' (default: this host)")
     parser.add_argument("--update-lock", action="store_true",
                         help="record the hash of dependencies that are not pinned yet")
+    parser.add_argument("--pin-only", action="store_true",
+                        help="download and hash, but do not unpack or install anything")
     parser.add_argument("--only", action="append", default=[], metavar="NAME",
                         help="fetch only this dependency (repeatable)")
     parser.add_argument("--force", action="store_true",
@@ -156,32 +199,43 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     lock = json.loads(LOCK_PATH.read_text(encoding="utf-8"))
-    selected = [d for d in lock["deps"] if not args.only or d["name"] in args.only]
-    unknown = set(args.only) - {d["name"] for d in lock["deps"]}
-    if unknown:
-        raise SystemExit(f"Unknown dependency: {', '.join(sorted(unknown))}")
+    known = {d["platform"] for d in lock["deps"]}
+    wanted = args.platform or host_platform()
+    if wanted != "all" and wanted not in known:
+        raise SystemExit(f"Unknown platform '{wanted}'. Known: {', '.join(sorted(known))}")
+
+    selected = [d for d in lock["deps"] if wanted == "all" or d["platform"] == wanted]
+    if args.only:
+        unknown = set(args.only) - {d["name"] for d in lock["deps"]}
+        if unknown:
+            raise SystemExit(f"Unknown dependency: {', '.join(sorted(unknown))}")
+        selected = [d for d in selected if d["name"] in args.only]
 
     dest = args.dest.resolve()
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     newly_pinned = []
 
+    print(f"platform: {wanted}\n")
     for dep in selected:
-        print(f"{dep['name']} {dep['version']}")
+        print(f"{dep['name']} {dep['version']} ({dep['platform']})")
         archive, actual = resolve(dep, args.force)
 
         if dep.get("sha256") is None:
             if not args.update_lock:
                 raise SystemExit(
-                    f"\n{dep['name']} is not pinned in deps.lock.json.\n"
+                    f"\n{dep['name']} ({dep['platform']}) is not pinned in deps.lock.json.\n"
                     f"  sha256 of what was just downloaded: {actual}\n"
                     "Check that against the publisher, then run:\n"
                     "  python tools/fetch_deps.py --update-lock"
                 )
             dep["sha256"] = actual
-            newly_pinned.append((dep["name"], actual))
+            newly_pinned.append((dep["name"], dep["platform"], actual))
             print(f"  pinned   {actual}")
         else:
             print(f"  verified {actual}")
+
+        if args.pin_only:
+            continue
 
         with tempfile.TemporaryDirectory(prefix="mpdf-dep-") as workdir:
             source = unpack(dep["archive"], archive, Path(workdir))
@@ -191,10 +245,18 @@ def main(argv=None):
     if newly_pinned:
         LOCK_PATH.write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8")
         print(f"\ndeps.lock.json updated with {len(newly_pinned)} hash(es):")
-        for name, digest in newly_pinned:
-            print(f"  {name}: {digest}")
+        for name, plat, digest in newly_pinned:
+            print(f"  {name} ({plat}): {digest}")
         print("Review these against the publisher before committing.")
 
+    if args.pin_only:
+        print("\nHashes recorded; nothing was installed (--pin-only).")
+        return 0
+
+    host_os = wanted.split("-")[0]
+    hint = SYSTEM_TOOLS.get(host_os)
+    if hint:
+        print(f"\nNot every tool ships a prebuilt binary for {host_os}. Install the rest with:\n  {hint}")
     print(f"\nDependencies ready in {dest}")
     return 0
 

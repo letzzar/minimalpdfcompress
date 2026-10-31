@@ -237,10 +237,22 @@ class GhostscriptGUI:
 
         self.vcmd_int = (self.root.register(self._validate_integer), '%P')
         self.vcmd_pagerange = (self.root.register(self._validate_page_range), '%P')
-        self.icon_path = backend.resource_path("pdf.ico")
+        # iconbitmap only accepts .ico, and only on Windows. iconphoto works on
+        # Windows, macOS and Linux alike, so it is the primary path; the .ico is
+        # a Windows extra that gives a sharper taskbar and title bar icon.
         try:
-            if self.icon_path.exists(): self.root.iconbitmap(self.icon_path)
-        except Exception as e: logging.warning(f"Failed to set icon: {e}")
+            icon_png = resource_path("assets/icon.png")
+            if icon_png.exists():
+                self._window_icon = ImageTk.PhotoImage(Image.open(icon_png))
+                self.root.iconphoto(True, self._window_icon)
+        except Exception as e:
+            logging.warning(f"Failed to set window icon: {e}")
+        if sys.platform == "win32":
+            try:
+                icon_ico = resource_path("pdf.ico")
+                if icon_ico.exists(): self.root.iconbitmap(icon_ico)
+            except Exception as e:
+                logging.warning(f"Failed to set .ico icon: {e}")
 
         self.main_frame = ttk.Frame(self.root, padding="10")
         self.main_frame.grid(row=0, column=0, sticky="nsew")
