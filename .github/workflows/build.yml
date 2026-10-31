@@ -63,7 +63,9 @@ jobs:
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
-        run: brew install ghostscript pngquant jpegoptim || true
+        # qpdf is for pikepdf: it publishes no x86_64 macOS wheel, so pip has to
+        # build it from source there and needs the qpdf headers.
+        run: brew install ghostscript pngquant jpegoptim qpdf || true
 
       - name: Install Python dependencies
         run: |

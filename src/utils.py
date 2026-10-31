@@ -46,7 +46,10 @@ def find_executable(name, tool_name):
     exe_name = f"{name}.exe" if sys.platform == "win32" else name
     local_bin_path = resource_path('bin') / exe_name
     if local_bin_path.exists(): return str(local_bin_path)
-    if shutil.which(exe_name): return exe_name
+    # Return the resolved path, not the bare name: callers derive resource
+    # locations from it, such as Ghostscript's icc profiles.
+    on_path = shutil.which(exe_name)
+    if on_path: return on_path
     raise ToolNotFound(f"Bundled '{tool_name}' ({exe_name}) not found and not in system PATH.")
 
 def find_ghostscript(): return find_executable("gswin64c" if sys.platform == "win32" else "gs", "Ghostscript")

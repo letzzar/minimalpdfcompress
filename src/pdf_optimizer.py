@@ -560,22 +560,36 @@ class PdfOptimizer:
             if gs_output_temp_pdf and gs_output_temp_pdf.exists():
                 os.remove(gs_output_temp_pdf)
 
+    def _find_srgb_profile(self):
+        """Locate srgb.icc across Ghostscript layouts and platforms.
+
+        10.x moved it from lib/ to iccprofiles/, our Windows build ships a copy
+        beside bin/, and system packages put it under share/ghostscript/<ver>/.
+        """
+        candidates = [resource_path('iccprofiles/srgb.icc'), resource_path('lib/srgb.icc')]
+        gs = shutil.which(self.gs_path) or self.gs_path
+        roots = [Path(gs).resolve().parent.parent]
+        roots += [Path(p) for p in ('/usr', '/usr/local', '/opt/homebrew')]
+        for root in roots:
+            candidates += [root / 'iccprofiles' / 'srgb.icc', root / 'lib' / 'srgb.icc']
+            share = root / 'share' / 'ghostscript'
+            if share.is_dir():
+                for version_dir in sorted(share.iterdir(), reverse=True):
+                    candidates += [version_dir / 'iccprofiles' / 'srgb.icc',
+                                   version_dir / 'lib' / 'srgb.icc']
+        for candidate in candidates:
+            try:
+                if candidate.exists(): return candidate
+            except OSError:
+                continue
+        return None
+
     def optimize_pdfa(self, input_file, temp_output_path):
         self._log_status( ("Converting to PDF/A..."))
         gs_output_temp_pdf = None
 
         try:
-            # Ghostscript moved srgb.icc from lib/ to iccprofiles/ in 10.x, and
-            # distributions disagree about the layout, so try the known places.
-            gs_root = Path(self.gs_path).resolve().parent.parent
-            candidates = [
-                gs_root / "iccprofiles" / "srgb.icc",
-                gs_root / "lib" / "srgb.icc",
-                gs_root / "share" / "ghostscript" / "iccprofiles" / "srgb.icc",
-                resource_path('iccprofiles/srgb.icc'),
-                resource_path('lib/srgb.icc'),
-            ]
-            srgb_profile = next((c for c in candidates if c.exists()), None)
+            srgb_profile = self._find_srgb_profile()
             if srgb_profile is None:
                 raise FileNotFoundError("Required 'srgb.icc' profile not found.")
 
