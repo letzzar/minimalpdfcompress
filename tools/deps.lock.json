@@ -1,0 +1,123 @@
+{
+  "_comment": [
+    "Every third-party binary this application bundles, pinned by SHA-256.",
+    "",
+    "Upstream ships these from a 'Win_Binaries' release tag with no version numbers,",
+    "no upstream URLs and no checksums, so a user cannot tell what is inside the app.",
+    "This fork fetches each tool from its own official project instead and refuses to",
+    "build if a download does not match the hash recorded here.",
+    "",
+    "A null sha256 means 'not pinned yet'. Run:  python tools/fetch_deps.py --update-lock",
+    "once, check the hash it records against the publisher, then commit it. CI runs",
+    "without --update-lock, so an unpinned or changed dependency fails the build."
+  ],
+  "deps": [
+    {
+      "name": "ghostscript",
+      "version": "10.08.0",
+      "homepage": "https://www.ghostscript.com/",
+      "license": "AGPL-3.0",
+      "url": "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10080/gs10080w64.exe",
+      "sha256": "52a91b8bf09298788d7a57b9206127026c23eacd75405f0a131e26dc381dce50",
+      "archive": "nsis",
+      "members": [
+        {
+          "from": "bin/gswin64c.exe",
+          "to": "bin/gswin64c.exe"
+        },
+        {
+          "from": "bin/gsdll64.dll",
+          "to": "bin/gsdll64.dll"
+        },
+        {
+          "from": "lib",
+          "to": "lib"
+        },
+        {
+          "from": "Resource",
+          "to": "Resource"
+        },
+        {
+          "from": "iccprofiles",
+          "to": "iccprofiles",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "cpdf",
+      "version": "git-4d44a0da",
+      "homepage": "https://github.com/coherentgraphics/cpdf-binaries",
+      "license": "dual: free for non-commercial use, see upstream LICENSE.md",
+      "url": "https://raw.githubusercontent.com/coherentgraphics/cpdf-binaries/4d44a0da36bd9acd21917c0bd437d542a91c14d1/Windows-64bit/cpdf.exe",
+      "sha256": "baeaca37cee2fea95c39283fc84f92187031824a884d5ae223a49adfea84ecea",
+      "archive": "raw",
+      "members": [
+        {
+          "from": ".",
+          "to": "bin/cpdf.exe"
+        }
+      ]
+    },
+    {
+      "name": "oxipng",
+      "version": "10.2.1",
+      "homepage": "https://github.com/shssoichiro/oxipng",
+      "license": "MIT",
+      "url": "https://github.com/shssoichiro/oxipng/releases/download/v10.2.1/oxipng-10.2.1-x86_64-pc-windows-msvc.zip",
+      "sha256": "7e940f83ee46874b73f53031f96a15834cb70b220af27391fb06fe7b4dd798e1",
+      "archive": "zip",
+      "members": [
+        {
+          "from": "**/oxipng.exe",
+          "to": "bin/oxipng.exe"
+        }
+      ]
+    },
+    {
+      "name": "jpegoptim",
+      "version": "1.5.6-rel1",
+      "homepage": "https://github.com/XhmikosR/jpegoptim-windows",
+      "license": "GPL-3.0",
+      "url": "https://github.com/XhmikosR/jpegoptim-windows/releases/download/1.5.6-rel1/jpegoptim-1.5.6-rel1-win64-msvc-2022-mozjpeg331-static-ltcg.zip",
+      "sha256": "07cead22ce33de657e6cadf6b84ecbac42debf80247575599db7f35a5f54a336",
+      "archive": "zip",
+      "members": [
+        {
+          "from": "**/jpegoptim.exe",
+          "to": "bin/jpegoptim.exe"
+        }
+      ]
+    },
+    {
+      "name": "ect",
+      "version": "0.9.5",
+      "homepage": "https://github.com/fhanau/Efficient-Compression-Tool",
+      "license": "Apache-2.0",
+      "url": "https://github.com/fhanau/Efficient-Compression-Tool/releases/download/v0.9.5/ect-0.9.5-win64.zip",
+      "sha256": "9218661a91fd939668e2033f77eddb7db513286e1c91e6fe62013a40c27c21ba",
+      "archive": "zip",
+      "members": [
+        {
+          "from": "**/ect.exe",
+          "to": "bin/ect.exe"
+        }
+      ]
+    },
+    {
+      "name": "pngquant",
+      "version": "3.0.3",
+      "homepage": "https://pngquant.org/",
+      "license": "GPL-3.0-or-later",
+      "url": "https://pngquant.org/pngquant-windows.zip",
+      "sha256": "bd0257aeeccfe446a4cd764927e26f8af6051796f28abed104307284107b120d",
+      "archive": "zip",
+      "members": [
+        {
+          "from": "**/pngquant.exe",
+          "to": "bin/pngquant.exe"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+# Build-only dependencies.
+#   python -m pip install -r requirements-build.txt
+#
+# Nuitka needs a C compiler. On Windows that is either MSVC (install the
+# "Desktop development with C++" workload of the Visual Studio Build Tools) or
+# MinGW-w64, which Nuitka offers to download on first run.
+nuitka==4.3.3
+zstandard==0.25.0

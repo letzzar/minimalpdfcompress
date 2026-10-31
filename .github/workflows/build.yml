@@ -1,0 +1,65 @@
+name: build
+
+# Upstream builds the released .exe by hand on a developer machine, so nobody
+# can check that the binary matches the source. This workflow builds it in the
+# open and signs a provenance attestation, so anyone can verify a download with:
+#   gh attestation verify MinimalPDF_Compress-<version>-win64.zip --repo <owner>/<repo>
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+          cache: pip
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r src/requirements.txt -r requirements-build.txt
+
+      - name: Fetch and verify bundled binaries
+        # Fails the build if any download does not match tools/deps.lock.json
+        run: python tools/fetch_deps.py
+
+      - name: Build standalone folder
+        run: python build.py --skip-deps
+
+      - name: List what was built
+        run: Get-ChildItem dist | Format-Table Name, Length
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: dist/*.zip
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: MinimalPDF_Compress-win64
+          path: dist/*.zip
+          if-no-files-found: error
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: dist/*.zip
+          generate_release_notes: true

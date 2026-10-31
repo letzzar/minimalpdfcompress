@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+
+# Build output and fetched third-party binaries. Everything under these paths
+# is reproducible with:  python tools/fetch_deps.py && python build.py
+build/
+dist/
+src/bin/
+src/lib/
+src/Resource/
+src/iccprofiles/
+
+# Written by the app when run in portable mode
+settings.json

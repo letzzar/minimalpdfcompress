@@ -1,177 +1,213 @@
+<div align="center">
+<img src="assets/pdf1.png" alt="MinimalPDF Compress" width="120">
+
 # MinimalPDF Compress
 
-<div style="overflow: auto;">
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/pdf1.png?raw=true" alt="Project Logo" width="20%" align="left" style="margin-right: 20px;">
-<strong>MinimalPDF Compress</strong>  is a user-friendly, Windows application designed to simplify PDF compression and utility tasks. It leverages the power of multiple best-in-class backends, including Ghostscript, cpdf, oxipng, pngquant, jbig2, zopfli, and ECT, wrapping them in a single, intuitive interface. <br><br><br><br>
+**A Windows desktop app for compressing and manipulating PDFs, entirely offline.**
 
+Hardened fork of [deminimis/minimalpdfcompress](https://github.com/deminimis/minimalpdfcompress) ·
+[What changed and why](FORK.md) · [Security](SECURITY.md)
 
-This application employs a highly-refined compression pipeline tailored to the user's selected mode. For lossy Compression, the process begins with Ghostscript, which rebuilds the PDF while downsampling images to the user-selected DPI. The file is then passed through a granular optimization stage where each image is individually optimized using specialized tools. For Lossless mode, the application uses pikepdf to iterate through the document, optimizing each image and data stream without reducing quality. All modes conclude with a final processing step using cpdf to linearize the file for fast web viewing, apply security settings, and squeeze out any final structural redundancies.
+</div>
 
-## Installation
+---
 
-1.  💾 **Download** the latest version from the [Releases page](https://github.com/deminimis/minimalpdfcompress/releases).
-    
-2.  Launch the application by double-clicking the **`.exe`** file.
+## What it is
+
+A Tkinter front-end over a pipeline of best-in-class command line tools —
+Ghostscript, cpdf, oxipng, pngquant, jpegoptim and ECT — wrapped so you never
+have to touch a command line. Everything runs locally. The application opens no
+network connections at all; you can firewall it completely and nothing changes.
+
+For lossy compression it rebuilds the PDF with Ghostscript at your chosen DPI,
+then optimises each embedded image individually with the specialised tools. For
+lossless it walks the document with pikepdf, re-compressing streams and images
+without touching pixels. Every mode finishes with cpdf, which linearises the
+file for fast web viewing and squeezes out structural redundancy.
+
+## Why this fork exists
+
+Two things, documented in full in **[FORK.md](FORK.md)**:
+
+- **The published `.exe` is flagged by antivirus engines.** It is a false
+  positive — the detections are packer and machine-learning heuristics reacting
+  to an unsigned, self-extracting onefile binary, and two engines literally name
+  Nuitka as the "threat". This fork builds a **standalone folder** instead of a
+  self-extracting executable, builds it in CI with a verifiable provenance
+  attestation, pins every bundled binary by SHA-256, and removes the base64 blob
+  from the source so a reader does not have to take anything on trust.
+- **Ghostscript ran with its sandbox disabled.** Upstream passes `-dNOSAFER` on
+  the main compression and PDF/A paths. For a tool that exists to open PDFs from
+  arbitrary sources, that turns any Ghostscript parser bug into filesystem
+  access. All five invocations now pass `-dSAFER`.
+
+## Install
+
+Download the latest `MinimalPDF_Compress-<version>-win64.zip` from
+[Releases](../../releases), unzip it anywhere, and run
+`MinimalPDF_Compress.exe`. There is no installer and nothing is written outside
+the folder except your settings.
+
+### Verify what you downloaded
+
+Releases are built by GitHub Actions and carry a signed provenance attestation
+tying the zip to the exact commit and workflow that produced it:
+
+```bash
+gh attestation verify MinimalPDF_Compress-<version>-win64.zip --repo <owner>/<repo>
+```
+
+Each build also ships `SHA256SUMS.txt` listing every file inside it.
+
+> **Note on antivirus.** The binary is unsigned, so some engines may still warn.
+> [FORK.md](FORK.md) explains exactly what the detections are and how to read
+> them. If something does not add up, do not run it — rebuild from source with
+> the steps below and compare.
 
 ## Features
 
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/Compress.png?raw=true" alt="Light Picture" width="70%">
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/live preview.png?raw=true" alt="Dark Picture" width="70%">
-<img src="https://github.com/deminimis/minimalpdfcompress/blob/main/assets/output.png?raw=true" alt="PDF Tool tab" width="70%">
+<img src="assets/Compress.png" alt="Compression tab" width="70%">
+<img src="assets/live preview.png" alt="Live preview" width="70%">
 
-The application is organized into logical tabs for a clear and efficient workflow.
+### Compression modes
 
-### Primary Tab: Smart Compression
+| Mode | What it does |
+|---|---|
+| **Compression** | Rebuilds the PDF with Ghostscript, downsampling images to a DPI you pick with a slider. Optional lossless (Flate) image encoding avoids JPEG artefacts. |
+| **Lossless** | Re-compresses streams and optimises embedded images with oxipng, ECT and jbig2 without reducing quality. |
+| **PDF/A** | Converts to the PDF/A-2b archival format. May increase file size. |
+| **Remove Images** | Strips image data, leaving blank placeholders — useful for text-only archival. |
 
-The main tab offers a streamlined approach with four distinct optimization modes:
-
-- **Compression**: Recreates the PDF using Ghostscript to intelligently downsample images. An interactive **custom slider** makes it easy to set the desired image resolution (DPI). Includes a new advanced **Lossless Image Encoding (Flate)** option to resize images without introducing JPEG artifacts.
-    
-- **Lossless**: A powerful pipeline that reduces file size without any quality degradation. It works by re-compressing data streams and intelligently optimizing embedded images (PNG, JPG, etc.) using `oxipng`, `ECT`, and `jbig2`.
-     - **Note**: actively being worked on, it's not truely lossless yet. 
-    
-- **PDF/A**: Converts the document to the PDF/A-2b archival format. This ensures long-term viewability but may increase file size.
-    
-- **Remove Images**: Strips all image data from the document, replacing them with blank placeholders. This is useful for text-only archival.
-    
-- **Common Options**: All modes support a rich set of options, including password protection, metadata stripping, darkening scanned text, converting to grayscale, linearizing for fast web view, and toggling lossless image encoding.
-
+All modes support password protection, metadata stripping, darkening scanned
+text, grayscale conversion, linearisation for fast web view, and a
+"don't save if larger than the original" guard.
 
 ### Utilities
 
-A comprehensive suite of tools for common PDF management tasks:
+**Merge** · **Split / Extract** (single pages, every N pages, or ranges like
+`1-5, 8, 12-end`) · **Rotate** with live preview · **Delete pages** ·
+**Password** encrypt and decrypt · **Stamp / Watermark** with image or text,
+full control of position, opacity, font, colour and scale · **Header / Footer**
+with page numbers, dates and filenames · **Table of Contents** generated from
+existing bookmarks · **Metadata** editor · **PDF to Image** (PNG, JPEG, TIFF at
+a custom DPI) · **PDF Repair**.
 
-- **Merge**: Combine multiple PDF files into a single document, with controls to reorder files before merging.
-    
-- **Split/Extract**: Break apart a PDF. Modes include splitting into single pages, splitting every 'N' pages, or extracting custom page ranges (e.g., `1-5, 8, 12-end`).
-    
-- **Rotate**: Rotate all pages of a document by 90°, 180°, or 270°. Includes a live preview of the rotation.
-    
-- **Delete Pages**: Remove specific pages or page ranges from a PDF.
+<img src="assets/output.png" alt="Output settings" width="70%">
 
-- **Password**: Encrypt or decrypt PDF password. Must know the password for user-encrypted pdf, but can decrypt owner passwords without knowing the password. 
-    
-- **Stamp/Watermark**: Apply image or text-based watermarks. Features a live preview and full control over position, opacity, font, color, and size. Now includes image scaling.
-    
-- **Header/Footer**: Add dynamic page numbers, dates, filenames, or custom text to the top or bottom of pages.
-    
-- **Table of Contents**: Automatically generate a new, bookmarked Table of Contents page based on the document's existing bookmarks.
-    
-- **Metadata**: View and edit core metadata fields like Title, Author, Subject, and Keywords.
-    
-- **PDF to Image**: Convert PDF pages into high-quality PNG, JPEG, or TIFF images at a custom DPI.
-    
-- **PDF Repair**: Attempts to repair corrupted or damaged PDF files by rebuilding their structure.
+## Build from source
 
-## Building From Source
+You need Python 3.10+ (3.13 recommended), 7-Zip, and a C compiler for Nuitka —
+either the Visual Studio Build Tools with the "Desktop development with C++"
+workload, or MinGW-w64, which Nuitka offers to download on first run.
 
-To create the executable from the source code:
+```bash
+git clone <your fork url>
+cd minimalpdfcompress
+python -m pip install -r src/requirements.txt -r requirements-build.txt
+python build.py
+```
 
-1. **Install Python** (3.10+ recommended).
-    
-2. **Clone the repository** and navigate into the project directory.
-    
-3. **Install dependencies**:
-    
-    Bash
-    
-    ```
-    pip install pyinstaller pillow pikepdf windnd oxipng
-    ```
-    
-4. **Run the PyInstaller command** using the provided spec file. This correctly bundles all required binary tools and assets.
-    
-    Bash
-    
-    ```
-    pyinstaller main.spec
-    ```
-    
-5. Find your completed application inside the `dist/MinimalPDF v1.8` folder.
-    
+`build.py` fetches and hash-verifies the bundled binaries, compiles with Nuitka
+in standalone mode, assembles the folder, writes `SHA256SUMS.txt` and zips the
+result into `dist/`.
 
-### Third party binaries
-See: [Windows PDF Compression Binaries](https://github.com/deminimis/minimalpdfcompress/releases/tag/Win_Binaries)    
-    
+```bash
+python build.py --skip-deps   # reuse binaries already fetched into src/
+python build.py --onefile     # also emit a single .exe (the AV-noisy variant)
+python tools/fetch_deps.py    # fetch and verify dependencies only
+```
 
-## Code Structure
+To run straight from source without building:
 
-The application is modularized to separate concerns between the UI, backend logic, and styling.
+```bash
+python -m pip install -r src/requirements.txt
+python tools/fetch_deps.py
+python src/main.py
+```
 
-- `main.py`: The application's main entry point. Handles setup and launches the GUI.
-    
-- `gui.py`: Manages the entire Tkinter UI, including window layout, widgets, live previews, event handling, and threading for backend tasks.
-    
-- `backend.py`: Contains all non-GUI logic. It finds the required tools, builds commands, runs subprocesses, and handles PDF manipulation for all utility tabs.
-    
-- `pdf_optimizer.py`: Houses the core compression logic. The `PdfOptimizer` class manages the distinct pipelines for each compression mode.
-    
-- `styles.py`: Defines the application's visual theme and color palettes for modern light and dark modes.
-    
-- `constants.py`: Stores shared constants like operation names, UI text, and font lists to ensure consistency.
-    
-- `ui_components.py`: Contains reusable, custom-built Tkinter widgets, such as the `CompressionGauge`, `ModernToggle`, `CustomSlider`, and `PositionSelector`.
-    
-- `tooltips.py`: A centralized dictionary containing all tooltip text for the UI elements, making it easy to manage and update help text.
-    
+### Bundled binaries
 
+Every third-party tool is pinned by SHA-256 in
+[`tools/deps.lock.json`](tools/deps.lock.json) and downloaded from its own
+official project. A download that does not match its pin aborts the build.
 
+| Tool | Version | Upstream |
+|---|---|---|
+| Ghostscript | 10.08.0 | [ArtifexSoftware/ghostpdl-downloads](https://github.com/ArtifexSoftware/ghostpdl-downloads) |
+| cpdf | `4d44a0da` | [coherentgraphics/cpdf-binaries](https://github.com/coherentgraphics/cpdf-binaries) |
+| oxipng | 10.2.1 | [shssoichiro/oxipng](https://github.com/shssoichiro/oxipng) |
+| jpegoptim | 1.5.6-rel1 | [XhmikosR/jpegoptim-windows](https://github.com/XhmikosR/jpegoptim-windows) |
+| ECT | 0.9.5 | [fhanau/Efficient-Compression-Tool](https://github.com/fhanau/Efficient-Compression-Tool) |
+| pngquant | 3.0.3 | [pngquant.org](https://pngquant.org/) |
+
+A dependency that is not pinned yet shows `"sha256": null`. Run
+`python tools/fetch_deps.py --update-lock` once, check the hash it records
+against the publisher, and commit it.
+
+## Code structure
+
+```
+src/main.py            entry point: logging, DPI awareness, launches the GUI
+src/gui.py             the entire Tkinter UI, previews, threading
+src/backend.py         non-GUI logic for the utility tabs
+src/pdf_optimizer.py   the compression pipelines
+src/utils.py           tool discovery, subprocess wrapper, paths
+src/constants.py       shared constants and the version number
+src/styles.py          light and dark themes
+src/ui_components.py   custom widgets (gauge, toggle, slider, position picker)
+src/tooltips.py        all tooltip text
+build.py               standalone build
+tools/fetch_deps.py    hash-verified dependency fetcher
+tools/deps.lock.json   every bundled binary, pinned
+```
 
 ## FAQ
 
-**Q: What's the difference between "Compression" and "Lossless" modes?**
+**Does it connect to the internet?**
+No. There is no HTTP client, no socket use, no telemetry and no update check
+that phones home. The only network activity is your system browser opening,
+after you click a link in the Settings tab.
 
-**A:** **Compression** (lossy) reduces file size by removing data, primarily by downsampling images to a lower resolution (DPI). This leads to much smaller files but also a reduction in image quality. It's best for documents where perfect image fidelity isn't critical. **Lossless** reduces file size _without_ any loss of quality. It works by finding more efficient ways to store the exact same data, such as re-compressing data streams and optimizing image formats without changing the pixels.
+**Where are my settings stored?**
+`%APPDATA%\MinimalPDF Compress\settings.json`. If a `settings.json` sits next to
+the executable it is used instead, so portable installs on a USB stick work.
 
-**Q: Do I need to install Ghostscript or other tools separately?**
+**Do I need to install Ghostscript separately?**
+No. Everything is bundled.
 
-**A:** No. All required command-line tools (Ghostscript, cpdf, pngquant, etc.) are bundled with the application for your convenience. The application is self-contained and ready to run after unzipping.
+**Why did my file get bigger?**
+The original was probably already optimised, or you converted to PDF/A, which
+adds structural data. Enable "Don't save if larger than original" in Output
+Settings.
 
-**Q: Why did my file size _increase_ after compression?**
-
-**A:** This can happen if the original PDF was already highly optimized or if you are converting to PDF/A, which can add structural data. You can use the "Don't save if larger than original" option in the Output Settings to prevent this.
-
-**Q: Isn't Python slow? Why not use C++?**
-
-**A:** While Python itself can be slower for CPU-intensive tasks, this application's heavy lifting is handled by powerful external programs written in C/C++ (like Ghostscript, cpdf, and oxipng). Python acts as the front-end user interface. The performance difference in the actual PDF processing is therefore negligible.
-
-**Q: Is my data safe? Does this app connect to the internet?**
-
-**A:** All PDF processing happens locally on your computer. The application does not send your files or any data over the internet. The only network activity occurs if you explicitly click the "Check for Updates" or "Buy me a coffee" links in the settings tab.
-
-**Q: Is Windows 7 Supported?**
-
-**A:** Yes, please see the note on [version 1.9.6](https://github.com/deminimis/minimalpdfcompress/releases/tag/v1.9.6). 
+**Why Python and not C++?**
+The heavy lifting is done by C/C++ programs. Python only drives the UI, so the
+performance difference in actual PDF processing is negligible.
 
 ## Contributing
 
-Contributions are welcome! Feel free to post problems in the Issues tab or suggestions in the Discussion tab.
+Issues and pull requests welcome. Changes that affect the build or the bundled
+binaries should update `tools/deps.lock.json` and say where the new hash came
+from.
 
-If you want to implement code yourself, please fork the repository, create a feature branch, and submit a pull request with your changes.
+## Credits
 
-## Special Thanks
+This project is a thin wrapper around other people's work:
+[Ghostscript](https://www.ghostscript.com/) ·
+[cpdf](https://github.com/coherentgraphics/cpdf-binaries) ·
+[oxipng](https://github.com/shssoichiro/oxipng) ·
+[pngquant](https://pngquant.org/) ·
+[jpegoptim](https://github.com/tjko/jpegoptim) ·
+[zopfli](https://github.com/google/zopfli) ·
+[ECT](https://github.com/fhanau/Efficient-Compression-Tool) ·
+[jbig2enc](https://github.com/agl/jbig2enc) ·
+[pikepdf](https://github.com/pikepdf/pikepdf)
 
-This code relies on:
+Original application by [deminimis](https://github.com/deminimis/minimalpdfcompress).
+Test PDFs from [sample-files.com](https://sample-files.com/documents/pdf/) and
+contributions by [cisko99za](https://github.com/cisko99za) and
+[necros2k7](https://github.com/necros2k7).
 
-- [GhostScript](https://www.ghostscript.com/)
-    
-- [CoherentPDF](https://github.com/coherentgraphics/cpdf-binaries)
-    
-- [oxipng](https://github.com/shssoichiro/oxipng)
-    
-- [pngquant](https://pngquant.org/)
-    
-- [jpegoptim](https://github.com/tjko/jpegoptim)
-    
-- [zopfli](https://github.com/google/zopfli)
-    
-- [Efficient Compression Tool (ECT)](https://github.com/fhanau/Efficient-Compression-Tool)
-    
-- [jbig2enc](https://github.com/agl/jbig2enc)
-  
-- [pikepdf](https://github.com/pikepdf/pikepdf)
+## License
 
-PDF Testing with:
-
-- [Sample-Files](https://sample-files.com/documents/pdf/)
-- Contributions from [cisko99za](https://github.com/cisko99za); [necros2k7](https://github.com/necros2k7)
+AGPL-3.0, inherited from upstream. See [LICENSE.md](LICENSE.md).
