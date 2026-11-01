@@ -80,9 +80,11 @@ platform — on Windows from Artifex's installer, elsewhere compiled from their
 pinned source release during the build, since Artifex publishes no prebuilt
 Linux or macOS binaries.
 
-The only gap is `jpegoptim` on **arm64**, where no upstream build exists. On a
-Raspberry Pi or an Apple Silicon Mac the app simply skips that one image
-optimisation step; everything else works. If you want it there:
+The only gap is `jpegoptim` on **Linux arm64 and macOS Intel**, where no
+upstream build exists — the asset upstream labels `x64-osx` actually contains
+an arm64 binary, so Apple Silicon is covered and Intel is not. On those two the
+app simply skips that one image optimisation step; everything else works. If
+you want it there:
 
 ```bash
 brew install jpegoptim          # macOS
@@ -200,7 +202,7 @@ official project. A download that does not match its pin aborts the build.
 | cpdf | `4d44a0da` | all but Linux arm64 | [coherentgraphics/cpdf-binaries](https://github.com/coherentgraphics/cpdf-binaries) |
 | oxipng | 10.2.1 | all | [shssoichiro/oxipng](https://github.com/shssoichiro/oxipng) |
 | ECT | 0.9.5 | Windows, macOS | [fhanau/Efficient-Compression-Tool](https://github.com/fhanau/Efficient-Compression-Tool) |
-| jpegoptim | 1.5.6 | all but arm64 | [tjko/jpegoptim](https://github.com/tjko/jpegoptim), and [XhmikosR](https://github.com/XhmikosR/jpegoptim-windows) on Windows for its mozjpeg linkage |
+| jpegoptim | 1.5.6 | Windows, Linux x86_64, macOS arm64 | [tjko/jpegoptim](https://github.com/tjko/jpegoptim), and [XhmikosR](https://github.com/XhmikosR/jpegoptim-windows) on Windows for its mozjpeg linkage |
 | pngquant | 3.0.3 | all (built from source) | [crates.io](https://crates.io/crates/pngquant) |
 
 Artifex publishes a Windows installer but only source for Linux and macOS, so

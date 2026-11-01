@@ -448,11 +448,11 @@
     },
     {
       "name": "jpegoptim",
-      "platform": "macos-x86_64",
+      "platform": "macos-aarch64",
       "version": "1.5.6",
       "homepage": "https://github.com/tjko/jpegoptim",
       "license": "GPL-3.0",
-      "comment": "Built and published by jpegoptim's own author. No arm64 build exists upstream.",
+      "comment": "Upstream names this asset x64-osx but it contains an arm64 binary: its Mach-O header reports cputype 0x0100000c, and on an Intel runner every call failed with 'Bad CPU type in executable'. It is therefore mapped to arm64, which is what it actually is, leaving macOS Intel without jpegoptim. If upstream ever corrects the asset the hash will stop matching and the build will say so.",
       "url": "https://github.com/tjko/jpegoptim/releases/download/v1.5.6/jpegoptim-1.5.6-x64-osx.zip",
       "sha256": "5ca21c2f8f02ed815b00e453b0ea235d84ac6a99704d15bb587f952f700d6d44",
       "archive": "zip",
