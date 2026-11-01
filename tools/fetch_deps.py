@@ -163,8 +163,14 @@ def build_ghostscript(source, workdir):
                    "-Wno-error=incompatible-function-pointer-types")
         env["CFLAGS"] = (env.get("CFLAGS", "") + " " + lenient).strip()
     steps = [
+        # fontconfig is disabled on purpose, not just because its headers are
+        # missing on the macOS arm64 runner. Linking it would make every build
+        # depend on the runner's fontconfig at the user's runtime, for a
+        # feature this app does not need: Ghostscript still substitutes
+        # non-embedded fonts from its own built-in set.
         ["./configure", f"--prefix={stage}",
          "--without-x", "--disable-cups", "--disable-gtk", "--disable-dbus",
+         "--disable-fontconfig", "--without-fontconfig",
          "--without-tesseract", "--without-libidn", "--without-libpaper"],
         ["make", f"-j{os.cpu_count() or 2}"],
         ["make", "install"],
