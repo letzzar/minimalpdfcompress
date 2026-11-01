@@ -51,36 +51,21 @@ Nada a medias.
 - El selector de idioma no se ha probado pulsándolo: se ha verificado que el
   valor persiste y que la app arranca en ambos idiomas, pero el diálogo de
   "hay que reiniciar" no lo ha visto nadie todavía.
-- **Modernizar la interfaz.** Próximo objetivo pedido por el Director.
-- **El icono sale con un marco negro alrededor. Ya diagnosticado.**
-
-  Mi primera sospecha (que Tk rellenaba de negro el canal alfa) era **falsa**.
-  Medido con Pillow: **ninguna imagen del proyecto tiene transparencia.**
-
-  | Origen | Frames | Píxeles con alfa=0 |
-  |---|---|---|
-  | `src/pdf.ico` | 16, 24, 32, 48, 64, 256 | 0 % en todos |
-  | `src/dependencies/pdf.ico` | 16 … 256 | 0 % en todos |
-  | `assets/pdf.png`, `pdf1.png` | 512 | 0 % |
-
-  Las esquinas son `(0,0,0,255)`: negro **opaco**. El fondo negro viene
-  horneado en el arte original de upstream, no lo introduce el código. Lo que
-  sí cambió es que `iconphoto()` ahora pone también el icono de la barra de
-  tareas, donde se nota mucho más que en la barra de título.
-
-  No lo arreglo por mi cuenta porque hace falta decidir, y es decisión del
-  Director:
-  1. Recortar el fondo por color desde las esquinas, con tolerancia. Barato,
-     pero se comería las partes negras del propio logotipo si las toca.
-  2. Arte nuevo con fondo transparente. Es lo correcto y da buen resultado en
-     los tres sistemas, pero hay que hacerlo.
-
-  Encaja con «modernizar la interfaz»: conviene resolverlo junto con eso.
+- **Modernizar la interfaz.** Es lo único que queda del encargo del Director.
 - `jpegoptim` es la única herramienta que el README sigue pidiendo instalar a
   mano fuera de Windows.
 - Firma de código: lo único que queda para la última detección de antivirus.
 - El instalador no se ha medido en VirusTotal.
 - `src/dependencies/pdf.ico` no lo referencia nada; anotado, no borrado.
+
+- **Marco negro del icono: resuelto.** El arte de upstream traía el fondo
+  negro horneado en las cuatro esquinas de fuera de la pastilla redondeada; no
+  era Tk maltratando el alfa, como sospeché primero. `tools/make_icons.py`
+  regenera `src/assets/icon.png` y `src/pdf.ico` desde `assets/pdf1.png`
+  vaciando el fondo por contigüidad desde las esquinas, que sólo borra lo
+  conectado al borde y deja intacto el logotipo oscuro del centro. Arregla de
+  una vez la ventana, la barra de tareas, el `.exe`, el instalador, el `.icns`
+  de macOS y el icono del `.deb`, porque todos salen de esos dos ficheros.
 
 ## Decisiones tomadas
 
