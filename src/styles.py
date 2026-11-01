@@ -154,8 +154,11 @@ def apply_theme(root, mode='dark'):
                     insertcolor=colors["TEXT"], fieldbackground=colors["ELEVATED"],
                     bordercolor=colors["ELEVATED"], lightcolor=colors["ELEVATED"],
                     darkcolor=colors["ELEVATED"])
+    # A read-only field at page level sat below the card it lives in and read
+    # as a hole. It stays a field; the muted text is what says "not editable".
     style.map('TEntry',
-              fieldbackground=[('readonly', colors["BG"]), ('focus', colors["ELEVATED"])],
+              fieldbackground=[('readonly', colors["ELEVATED"]), ('focus', colors["ELEVATED"])],
+              foreground=[('readonly', colors["MUTED"])],
               bordercolor=[('focus', colors["ACCENT"])],
               lightcolor=[('focus', colors["ACCENT"])],
               darkcolor=[('focus', colors["ACCENT"])])
@@ -179,7 +182,10 @@ def apply_theme(root, mode='dark'):
     style.layout('TProgressbar', [('Progressbar.trough', {'children': [('Progressbar.pbar', {'sticky': 'nswe'})], 'sticky': 'nswe'})])
 
     # Tabs: no box around the selected one, just accent text.
-    style.configure('TNotebook', background=colors["BG"], borderwidth=0, tabmargins=(2, 4, 2, 0))
+    # borderwidth=0 does not reach the client area: clam draws its edge from
+    # these three colours, which left a pale rule under every tab strip.
+    style.configure('TNotebook', background=colors["BG"], borderwidth=0, tabmargins=(2, 4, 2, 0),
+                    bordercolor=colors["BG"], lightcolor=colors["BG"], darkcolor=colors["BG"])
     # clam outlines each tab with the Notebook.tab element, and no colour
     # option silences it. With eleven utility tabs in a row that reads as a
     # grid of boxes, so the element is dropped: the selected tab is already
@@ -207,10 +213,6 @@ def apply_theme(root, mode='dark'):
                     darkcolor=colors["WIDGET_BG"], padding=12)
     style.configure('TLabelframe.Label', background=colors["WIDGET_BG"], foreground=colors["TEXT"],
                     font=(FONT_FAMILY, FONT_HEADING, 'bold'))
-
-    style.configure('Horizontal.TScale', background=colors["WIDGET_BG"], troughcolor=colors["ELEVATED"],
-                    sliderrelief='flat', sliderlength=18, borderwidth=0)
-    style.map('Horizontal.TScale', background=[('active', colors["ACCENT_HOVER"]), ('!active', colors["ACCENT"])])
 
     # Checkbuttons were raw clam squares next to custom toggles; at least make
     # them share the palette and the spacing.

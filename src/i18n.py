@@ -101,7 +101,15 @@ SPANISH = {
 
     # Common labels
     "Input": "Entrada",
+    "Output": "Salida",
     "Browse": "Examinar",
+    "Drag & Drop PDF File or Folder Here": "Arrastra aquí un PDF o una carpeta",
+    "Select File(s)": "Elegir archivos",
+    "Select Folder": "Elegir carpeta",
+    "File Name": "Archivo",
+    "Pages": "Páginas",
+    "Size": "Tamaño",
+    "Choose color": "Elegir color",
     "Add Files": "Añadir archivos",
     "Clear All": "Vaciar lista",
     "Remove": "Quitar",

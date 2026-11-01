@@ -260,7 +260,25 @@ resource forks through a zip round trip.
 What is still rough on macOS: the app is unsigned and unnotarised, so first run
 needs `xattr -dr com.apple.quarantine MinimalPDF_Compress.app`.
 
-## 6. Files added
+## 6. Interface
+
+The application now speaks Spanish as well as English, chosen in Settings and
+applied on the next start. Tkinter cannot relabel an interface that is already
+built, and rebuilding it would drop the queued files and the previews, so the
+change is deferred on purpose. The catalogue in `src/i18n.py` is keyed by the
+English source string, so anything not yet translated falls back to readable
+English instead of to an invented key name. Help texts live in a parallel
+dictionary in `src/tooltips.py` because they are paragraphs.
+
+The theme takes its depth from three surface levels rather than from outlines,
+which `clam` adds to almost everything and silences through a different option
+in each widget. Along the way four tooltips that `gui.py` had always asked for
+turned out to be missing from the catalogue, so the drop zone, the file list
+and the Add and Remove buttons on the Compress tab had been showing no help at
+all. All sliders are now the same drawn control; three of them were still
+`ttk.Scale`, which rendered as an outlined bar with a striped grip.
+
+## 7. Files added
 
 ```
 build.py                      standalone build (folder by default)
@@ -271,6 +289,9 @@ tools/deps.lock.json          every bundled binary, pinned by SHA-256
 SECURITY.md                   threat model and reporting
 FORK.md                       this file
 src/assets/coffee.png         the icon that used to be a base64 string
+src/i18n.py                   interface catalogue and language selection
+tools/make_icons.py           regenerates the icons from the source artwork
+packaging/                    Inno Setup installer and .deb metadata
 ```
 
 ## Reporting the false positive

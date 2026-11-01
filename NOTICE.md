@@ -39,6 +39,11 @@ and documents every change with its reasoning. In summary, as of 2026-11-01:
   Windows, macOS and Linux on x86_64 and arm64.
 - The window icon is set with `iconphoto` so it works outside Windows.
 - The embedded base64 icon became a real PNG asset.
+- The interface is available in Spanish as well as English, selected in
+  Settings; upstream is English only.
+- The interface was reworked: one type scale, surfaces instead of outlines, one
+  slider control throughout, and four help texts that upstream references but
+  never defined.
 
 Upstream has been offered these changes rather than only forking them:
 [PR #63](https://github.com/deminimis/minimalpdfcompress/pull/63) for the

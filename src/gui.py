@@ -223,6 +223,7 @@ class GhostscriptGUI:
 
         self.palette = {}
         self.toggles = []
+        self.sliders = []
         self.gs_path, self.cpdf_path, self.pngquant_path, self.jpegoptim_path, self.ect_path, self.oxipng_path = None, None, None, None, None, None
         self.active_process_button = None
         self.tab_frames = {}
@@ -638,9 +639,9 @@ class GhostscriptGUI:
         vsb.grid(row=0, column=1, sticky='ns')
         self.compress_tree.configure(yscrollcommand=vsb.set)
 
-        self.compress_tree.heading('name', text='File Name')
-        self.compress_tree.heading('pages', text='Pages')
-        self.compress_tree.heading('size', text='Size')
+        self.compress_tree.heading('name', text=t('File Name'))
+        self.compress_tree.heading('pages', text=t('Pages'))
+        self.compress_tree.heading('size', text=t('Size'))
         self.compress_tree.column('name', stretch=True, minwidth=250)
         self.compress_tree.column('pages', width=60, anchor='center', stretch=False)
         self.compress_tree.column('size', width=100, anchor='e', stretch=False)
@@ -655,8 +656,8 @@ class GhostscriptGUI:
         output_frame.grid(row=2, column=0, sticky="nsew", pady=(10, 5))
         output_frame.columnconfigure(1, weight=1)
         ttk.Label(output_frame, text=t("Output Folder"), style="Card.TLabel").grid(row=0, column=0, sticky="e", padx=(0, 10))
-        out_entry = ttk.Entry(output_frame, textvariable=cs.output_path); out_entry.grid(row=0, column=1, sticky="we"); Tooltip(out_entry, "Destination folder for the processed file(s).")
-        browse_btn = ttk.Button(output_frame, text="...", command=self.browse_output, width=4); browse_btn.grid(row=0, column=2, sticky="e", padx=(5,0)); Tooltip(browse_btn, "Browse for output folder.")
+        out_entry = ttk.Entry(output_frame, textvariable=cs.output_path); out_entry.grid(row=0, column=1, sticky="we"); Tooltip(out_entry, tooltip("compress_output_entry"))
+        browse_btn = ttk.Button(output_frame, text="...", command=self.browse_output, width=4); browse_btn.grid(row=0, column=2, sticky="e", padx=(5,0)); Tooltip(browse_btn, tooltip("compress_output_browse"))
 
         control_panel = ttk.Frame(parent, style="Card.TFrame", padding=20)
         control_panel.grid(row=2, column=0, sticky="nsew", pady=10)
@@ -716,6 +717,7 @@ class GhostscriptGUI:
         cs.compress_mode.trace_add("write", update_dpi_label)
 
         self.dpi_slider = CustomSlider(dpi_frame, from_=50, to=150, variable=cs.dpi, palette=self.palette)
+        self.sliders.append(self.dpi_slider)
         self.dpi_slider.grid(row=1, column=0, sticky="ew", padx=(0, 10))
 
         self.dpi_entry = ttk.Entry(dpi_frame, textvariable=cs.dpi, width=5, validate='key', validatecommand=self.vcmd_int)
@@ -724,6 +726,7 @@ class GhostscriptGUI:
         Tooltip(dpi_frame, tooltip("compress_dpi_slider"))
 
         self.pdfa_dpi_slider = CustomSlider(dpi_frame, from_=72, to=600, variable=cs.pdfa_dpi, palette=self.palette)
+        self.sliders.append(self.pdfa_dpi_slider)
         self.pdfa_dpi_entry = ttk.Entry(dpi_frame, textvariable=cs.pdfa_dpi, width=5, validate='key', validatecommand=self.vcmd_int)
         self.pdfa_dpi_entry.bind("<FocusOut>", lambda e: self._clamp_var(cs.pdfa_dpi, 0, 600, 300))
 
@@ -781,10 +784,10 @@ class GhostscriptGUI:
         self.true_lossless_check = self._create_checkbutton(f2, "True Lossless (preserves JPEGs)", cs.true_lossless, "compress_true_lossless", anchor="w", pady=(5,0))
 
         self.pdfa_compress_check = self._create_checkbutton(f2, "Compress PDF/A Output", cs.pdfa_compression, None, anchor="w", pady=(5,0))
-        Tooltip(self.pdfa_compress_check, "Applies compression to the PDF/A file, which can reduce size but may affect quality.")
+        Tooltip(self.pdfa_compress_check, tooltip("compress_pdfa_compression"))
 
         self.delete_original_check = self._create_checkbutton(f2, "Delete original file if compressed", cs.delete_original, None, anchor="w", pady=(5,0))
-        Tooltip(self.delete_original_check, "Automatically deletes the original input file if compression successfully reduces its size.")
+        Tooltip(self.delete_original_check, tooltip("compress_delete_original"))
 
         self._update_compress_options()
         self.update_compress_view()
@@ -821,9 +824,9 @@ class GhostscriptGUI:
         btn3 = ttk.Button(btn_frame, text=t("Move Up"), style="Outline.TButton", command=self.move_merge_up); btn3.pack(fill="x", pady=(10, 2)); Tooltip(btn3, tooltip("merge_move_up_btn"))
         btn4 = ttk.Button(btn_frame, text=t("Move Down"), style="Outline.TButton", command=self.move_merge_down); btn4.pack(fill="x", pady=2); Tooltip(btn4, tooltip("merge_move_down_btn"))
 
-        self.merge_tree.heading('name', text='File Name')
-        self.merge_tree.heading('pages', text='Pages')
-        self.merge_tree.heading('size', text='Size')
+        self.merge_tree.heading('name', text=t('File Name'))
+        self.merge_tree.heading('pages', text=t('Pages'))
+        self.merge_tree.heading('size', text=t('Size'))
         self.merge_tree.column('name', stretch=True, minwidth=250)
         self.merge_tree.column('pages', width=60, anchor='center', stretch=False)
         self.merge_tree.column('size', width=100, anchor='e', stretch=False)
@@ -999,7 +1002,8 @@ class GhostscriptGUI:
         size_frame.grid(row=1, column=0, columnspan=3, sticky="ew", pady=4)
         size_frame.columnconfigure(1, weight=1)
         ttk.Label(size_frame, text=t("Scale:")).grid(row=0, column=0, sticky="w", padx=(0,10))
-        scale_slider = ttk.Scale(size_frame, from_=10, to=200, orient="horizontal", variable=s.image_scale, style="Horizontal.TScale")
+        scale_slider = CustomSlider(size_frame, from_=10, to=200, variable=s.image_scale, palette=self.palette)
+        self.sliders.append(scale_slider)
         scale_slider.grid(row=0, column=1, sticky="ew")
         scale_label = ttk.Label(size_frame, text="100%")
         scale_label.grid(row=0, column=2, sticky="e", padx=(10,0))
@@ -1040,7 +1044,7 @@ class GhostscriptGUI:
         pos_selector.grid(row=0, column=1, sticky="w", pady=5); Tooltip(pos_selector, tooltip("stamp_position"))
 
         ttk.Label(options_card, text=t("Opacity:")).grid(row=1, column=0, sticky="w", padx=(0,10), pady=5)
-        opacity_slider = ttk.Scale(options_card, from_=0.1, to=1.0, orient="horizontal", variable=s.opacity, style="Horizontal.TScale"); opacity_slider.grid(row=1, column=1, sticky="ew", pady=5); Tooltip(opacity_slider, tooltip("stamp_opacity"))
+        opacity_slider = CustomSlider(options_card, from_=0.1, to=1.0, variable=s.opacity, palette=self.palette); self.sliders.append(opacity_slider); opacity_slider.grid(row=1, column=1, sticky="ew", pady=5); Tooltip(opacity_slider, tooltip("stamp_opacity"))
 
         self._create_toggle(options_card, "Stamp on Top", s.on_top, "stamp_on_top", layout='grid', row=2, column=0, columnspan=2, sticky="w", pady=10)
 
@@ -1196,7 +1200,9 @@ class GhostscriptGUI:
         dpi_frame.grid(row=3, column=0, columnspan=2, sticky="ew")
         dpi_frame.columnconfigure(0, weight=1)
         Tooltip(dpi_frame, tooltip("convert_dpi_slider"))
-        ttk.Scale(dpi_frame, from_=72, to=600, orient="horizontal", variable=s.dpi_slider, style="Horizontal.TScale").grid(row=0, column=0, sticky="ew", padx=(0, 15))
+        convert_dpi_slider = CustomSlider(dpi_frame, from_=72, to=600, variable=s.dpi_slider, palette=self.palette)
+        self.sliders.append(convert_dpi_slider)
+        convert_dpi_slider.grid(row=0, column=0, sticky="ew", padx=(0, 15))
         ttk.Entry(dpi_frame, textvariable=s.dpi, width=5, validate='key', validatecommand=self.vcmd_int).grid(row=0, column=1, sticky="e")
 
         self.convert_button = self._build_footer(parent, 'convert', "CONVERT TO IMAGES", self.process_convert, row=2)
@@ -1726,12 +1732,12 @@ class GhostscriptGUI:
         self.update_merge_view()
 
     def pick_stamp_color(self):
-        color_code = colorchooser.askcolor(title="Choose color")
+        color_code = colorchooser.askcolor(title=t("Choose color"))
         if color_code and color_code[1]:
             self.stamp_settings.font_color.set(color_code[1])
 
     def pick_page_number_color(self):
-        color_code = colorchooser.askcolor(title="Choose color")
+        color_code = colorchooser.askcolor(title=t("Choose color"))
         if color_code and color_code[1]:
             self.page_number_settings.font_color.set(color_code[1])
 
@@ -1953,8 +1959,8 @@ class GhostscriptGUI:
         for toggle in self.toggles:
             toggle.update_colors(self.palette)
         if hasattr(self, 'gauge'): self.gauge.update_colors(self.palette)
-        if hasattr(self, 'dpi_slider'): self.dpi_slider.update_colors(self.palette)
-        if hasattr(self, 'pdfa_dpi_slider'): self.pdfa_dpi_slider.update_colors(self.palette)
+        for slider in self.sliders:
+            slider.update_colors(self.palette)
         for drop_zone in self.drop_zones.values():
             drop_zone.update_colors(self.palette)
         canvases = [

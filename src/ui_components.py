@@ -3,6 +3,10 @@ from tkinter import ttk
 from PIL import Image, ImageDraw, ImageTk
 import sys
 
+import styles
+from i18n import t
+from tooltips import tooltip
+
 class ScrolledFrame(ttk.Frame):
     def __init__(self, parent, *args, **kw):
         super().__init__(parent, *args, **kw)
@@ -145,13 +149,13 @@ class FileSelector(ttk.Frame):
         super().__init__(parent, style="Card.TFrame")
         self.columnconfigure(1, weight=1)
         if input_var:
-            ttk.Label(self, text="Input", style="Card.TLabel").grid(row=0, column=0, sticky="e", padx=(0, 10))
-            in_entry = ttk.Entry(self, textvariable=input_var, state="readonly"); in_entry.grid(row=0, column=1, sticky="we"); Tooltip(in_entry, "Selected input file.")
+            ttk.Label(self, text=t("Input"), style="Card.TLabel").grid(row=0, column=0, sticky="e", padx=(0, 10))
+            in_entry = ttk.Entry(self, textvariable=input_var, state="readonly"); in_entry.grid(row=0, column=1, sticky="we"); Tooltip(in_entry, tooltip("file_selector_input"))
 
         output_row = 1 if input_var else 0
-        ttk.Label(self, text="Output", style="Card.TLabel").grid(row=output_row, column=0, sticky="e", padx=(0, 10), pady=(5 if input_var else 0, 0))
-        out_entry = ttk.Entry(self, textvariable=output_var); out_entry.grid(row=output_row, column=1, sticky="we", pady=(5 if input_var else 0, 0)); Tooltip(out_entry, "Destination for the processed file(s).")
-        browse_btn = ttk.Button(self, text="...", command=browse_output_cmd, width=4); browse_btn.grid(row=output_row, column=2, sticky="e", padx=(5,0), pady=(5 if input_var else 0, 0)); Tooltip(browse_btn, "Browse for output location.")
+        ttk.Label(self, text=t("Output"), style="Card.TLabel").grid(row=output_row, column=0, sticky="e", padx=(0, 10), pady=(5 if input_var else 0, 0))
+        out_entry = ttk.Entry(self, textvariable=output_var); out_entry.grid(row=output_row, column=1, sticky="we", pady=(5 if input_var else 0, 0)); Tooltip(out_entry, tooltip("file_selector_output"))
+        browse_btn = ttk.Button(self, text="...", command=browse_output_cmd, width=4); browse_btn.grid(row=output_row, column=2, sticky="e", padx=(5,0), pady=(5 if input_var else 0, 0)); Tooltip(browse_btn, tooltip("file_selector_browse"))
 
 class ModernToggle(ttk.Checkbutton):
     def __init__(self, parent, text, variable, palette, command=None, **kwargs):
@@ -247,6 +251,9 @@ class CustomSlider(ttk.Frame):
         self.from_ = from_
         self.to = to
         self.variable = variable
+        # Opacity runs 0.1 to 1.0, so rounding every slider to a whole number
+        # would snap it to the ends. Follow the variable instead.
+        self.integral = not isinstance(variable, tk.DoubleVar)
         self.palette = palette if palette else {}
         self.state = "normal"
         self.thumb_radius = 8
@@ -317,8 +324,9 @@ class CustomSlider(ttk.Frame):
         value_ratio = (x - track_start_x) / track_width
         new_value = self.from_ + value_ratio * (self.to - self.from_)
 
-        if self.variable.get() != int(new_value):
-            self.variable.set(int(new_value))
+        new_value = int(new_value) if self.integral else round(new_value, 2)
+        if self.variable.get() != new_value:
+            self.variable.set(new_value)
 
 class DropZone(ttk.Frame):
     def __init__(self, parent, browse_file_cmd, browse_folder_cmd, palette, **kwargs):
@@ -332,14 +340,14 @@ class DropZone(ttk.Frame):
         self.columnconfigure(1, weight=1)
         self.rowconfigure(0, weight=1)
         
-        self.lbl = ttk.Label(self, text="Drag & Drop PDF File or Folder Here", 
-                             font=("Segoe UI", 12, "italic"), foreground=self.palette.get("DISABLED"))
+        self.lbl = ttk.Label(self, text=t("Drag & Drop PDF File or Folder Here"),
+                             font=(styles.FONT_FAMILY, 12, "italic"), foreground=self.palette.get("DISABLED"))
         self.lbl.grid(row=0, column=0, columnspan=2, pady=(0, 15))
 
-        self.file_btn = ttk.Button(self, text="Select File(s)", command=browse_file_cmd, style="Large.Outline.TButton")
+        self.file_btn = ttk.Button(self, text=t("Select File(s)"), command=browse_file_cmd, style="Large.Outline.TButton")
         self.file_btn.grid(row=1, column=0, sticky="e", padx=(0, 5))
         
-        self.folder_btn = ttk.Button(self, text="Select Folder", command=browse_folder_cmd, style="Large.Outline.TButton")
+        self.folder_btn = ttk.Button(self, text=t("Select Folder"), command=browse_folder_cmd, style="Large.Outline.TButton")
         self.folder_btn.grid(row=1, column=1, sticky="w", padx=(5, 0))
 
     def update_colors(self, palette):

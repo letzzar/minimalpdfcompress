@@ -113,6 +113,16 @@ TOOLTIP_TEXT = {
     "settings_add_time": "Adds the current time (HH-MM-SS) to the output filename.",
     "settings_buy_coffee": "If you find this app useful, please consider supporting its development!",
     "settings_check_updates": "Open the application's download page to check for new versions.",
+    # Referenced by gui.py since before the fork; without them the busiest
+    # controls on the Compress tab showed no help at all.
+    "drop_zone_compress": "Drag and drop PDF files or a folder here to add them to the list, or use the buttons below.",
+    "compress_tree": "The files queued for compression, with their page count and current size.",
+    "compress_add_btn": "Add more PDF files to the list.",
+    "compress_remove_btn": "Remove the selected file from the list.",
+    "compress_output_entry": "Destination folder for the processed file(s).",
+    "compress_output_browse": "Browse for output folder.",
+    "compress_pdfa_compression": "Applies compression to the PDF/A file, which can reduce size but may affect quality.",
+    "compress_delete_original": "Automatically deletes the original input file if compression successfully reduces its size.",
 }
 
 # Spanish lives in a parallel dictionary keyed the same way, rather than going
@@ -233,6 +243,14 @@ TOOLTIP_TEXT_ES = {
     "settings_add_time": "Añade la hora actual (HH-MM-SS) al nombre del archivo de salida.",
     "settings_buy_coffee": "Si la aplicación te resulta útil, puedes apoyar su desarrollo.",
     "settings_check_updates": "Abrir la página de descargas para ver si hay una versión nueva.",
+    "drop_zone_compress": "Arrastra aquí archivos PDF o una carpeta para añadirlos a la lista, o usa los botones de abajo.",
+    "compress_tree": "Archivos en cola para comprimir, con su número de páginas y su tamaño actual.",
+    "compress_add_btn": "Añadir más archivos PDF a la lista.",
+    "compress_remove_btn": "Quitar de la lista el archivo seleccionado.",
+    "compress_output_entry": "Carpeta de destino de los archivos procesados.",
+    "compress_output_browse": "Elegir la carpeta de destino.",
+    "compress_pdfa_compression": "Comprime también el archivo PDF/A. Reduce el tamaño, pero puede afectar a la calidad.",
+    "compress_delete_original": "Borra el archivo original si la compresión consigue reducir su tamaño.",
 }
 
 _CATALOGUES = {"es": TOOLTIP_TEXT_ES}
