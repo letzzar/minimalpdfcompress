@@ -51,10 +51,15 @@ Nada a medias.
 - El selector de idioma no se ha probado pulsándolo: se ha verificado que el
   valor persiste y que la app arranca en ambos idiomas, pero el diálogo de
   "hay que reiniciar" no lo ha visto nadie todavía.
-- El instalador de Windows nunca se ha medido en VirusTotal.
-- pngquant se compila ahora desde crates.io y sólo se empaqueta en Windows. La
-  misma receta serviría para macOS y Linux, lo que quitaría pngquant de la
-  línea de `brew`/`apt` del README. Sin hacer; no se ha pedido.
+- **Modernizar la interfaz.** Próximo objetivo pedido por el Director.
+- **El icono sale con un marco negro alrededor.** Reportado por el Director el
+  2026-11-01, sin diagnosticar todavía. Sospecha inicial: `iconphoto()` recibe
+  un PNG RGBA y Tk rellena de negro donde hay alfa, en vez de respetar la
+  transparencia. Afecta al icono nuevo de `src/assets/icon.png`; hay que mirar
+  si pasa en las tres plataformas o sólo en Windows, donde además se aplica el
+  `.ico` por encima.
+- `jpegoptim` es la única herramienta que el README sigue pidiendo instalar a
+  mano fuera de Windows.
 - Firma de código: lo único que queda para la última detección de antivirus.
 - El instalador no se ha medido en VirusTotal.
 - `src/dependencies/pdf.ico` no lo referencia nada; anotado, no borrado.

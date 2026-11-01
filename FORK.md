@@ -65,11 +65,19 @@ Both artefacts of this fork's build were submitted to VirusTotal on
 | upstream v1.9.7 `MinimalPDF_Compress.exe` (onefile) | `fc96099246…` | **38 / 71** |
 | this fork `MinimalPDF_Compress.exe` (standalone) | `ac7e6870e5…` | **1 / 71** |
 | this fork `MinimalPDF_Compress-1.10.0-win64.zip` | `39d8d6bc3d…` | **1 / 68** |
+| this fork, the Inno Setup installer | `c3a4ae59fd…` | **1 / 68** |
 
 The single remaining hit on the executable is Microsoft,
 `Trojan:Win32/Wacatac.C!ml` — a machine-learning signature, which is what an
 unsigned binary attracts. On the zip the only hit is Zillya,
 `Trojan.AgentAGen.Win64.25905`, and Microsoft is clean there.
+
+The installer scores the same 1/68, and its one hit is DeepInstinct with a
+bare `MALICIOUS` and no family name, which is a pure machine-learning verdict.
+Microsoft, ESET, Kaspersky, BitDefender, Avast, Symantec, Sophos and
+Malwarebytes are all clean on it. Worth noting that the installer is the
+*cleaner* artefact for the engine that matters most on Windows: Microsoft
+flags the bare executable and not the installer that contains it.
 
 Everything that flagged the onefile build now returns clean: ESET, Alibaba
 (both of which previously named Nuitka outright), Symantec, SentinelOne,
