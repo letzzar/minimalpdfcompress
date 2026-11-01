@@ -91,20 +91,15 @@
       ]
     },
     {
-      "name": "cpdf",
-      "platform": "linux-aarch64",
-      "version": "git-4d44a0da",
-      "homepage": "https://github.com/coherentgraphics/cpdf-binaries",
-      "license": "dual: free for non-commercial use, see upstream LICENSE.md",
-      "url": "https://raw.githubusercontent.com/coherentgraphics/cpdf-binaries/4d44a0da36bd9acd21917c0bd437d542a91c14d1/Linux-ARM-64bit/cpdf",
-      "sha256": "3b8bbe53f47902ae90b13222881fbe00928a63b5553dfafc3c3901c13b62848c",
-      "archive": "raw",
-      "members": [
-        {
-          "from": ".",
-          "to": "bin/cpdf",
-          "executable": true
-        }
+      "_disabled": [
+        "cpdf for linux-aarch64 is published linked against GLIBC_2.42, which no",
+        "current distribution ships -- Ubuntu 24.04 has 2.39 -- so the binary cannot",
+        "run and every pipeline fails with a linker error. It is left out rather than",
+        "shipped broken. _post_process_pdf() already degrades gracefully without cpdf:",
+        "linearisation and squeezing are skipped, everything else works. Re-enable by",
+        "renaming this key to \"name\" once upstream links against something older.",
+        "url: https://raw.githubusercontent.com/coherentgraphics/cpdf-binaries/4d44a0da36bd9acd21917c0bd437d542a91c14d1/Linux-ARM-64bit/cpdf",
+        "sha256: 3b8bbe53f47902ae90b13222881fbe00928a63b5553dfafc3c3901c13b62848c"
       ]
     },
     {

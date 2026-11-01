@@ -577,6 +577,9 @@ class PdfOptimizer:
                 for version_dir in sorted(share.iterdir(), reverse=True):
                     candidates += [version_dir / 'iccprofiles' / 'srgb.icc',
                                    version_dir / 'lib' / 'srgb.icc']
+        # Last resort: our own copy. Homebrew's Ghostscript, for one, ships no
+        # icc profiles at all, and PDF/A cannot be produced without one.
+        candidates.append(resource_path('assets/srgb.icc'))
         for candidate in candidates:
             try:
                 if candidate.exists(): return candidate

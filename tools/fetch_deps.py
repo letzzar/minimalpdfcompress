@@ -199,14 +199,16 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     lock = json.loads(LOCK_PATH.read_text(encoding="utf-8"))
-    known = {d["platform"] for d in lock["deps"]}
+    # An entry with no "name" is disabled; the entry itself says why.
+    active = [d for d in lock["deps"] if "name" in d]
+    known = {d["platform"] for d in active}
     wanted = args.platform or host_platform()
     if wanted != "all" and wanted not in known:
         raise SystemExit(f"Unknown platform '{wanted}'. Known: {', '.join(sorted(known))}")
 
-    selected = [d for d in lock["deps"] if wanted == "all" or d["platform"] == wanted]
+    selected = [d for d in active if wanted == "all" or d["platform"] == wanted]
     if args.only:
-        unknown = set(args.only) - {d["name"] for d in lock["deps"]}
+        unknown = set(args.only) - {d["name"] for d in active}
         if unknown:
             raise SystemExit(f"Unknown dependency: {', '.join(sorted(unknown))}")
         selected = [d for d in selected if d["name"] in args.only]

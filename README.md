@@ -177,7 +177,7 @@ official project. A download that does not match its pin aborts the build.
 | Tool | Version | Bundled on | Upstream |
 |---|---|---|---|
 | Ghostscript | 10.08.0 | Windows only | [ArtifexSoftware/ghostpdl-downloads](https://github.com/ArtifexSoftware/ghostpdl-downloads) |
-| cpdf | `4d44a0da` | all | [coherentgraphics/cpdf-binaries](https://github.com/coherentgraphics/cpdf-binaries) |
+| cpdf | `4d44a0da` | all but Linux arm64 | [coherentgraphics/cpdf-binaries](https://github.com/coherentgraphics/cpdf-binaries) |
 | oxipng | 10.2.1 | all | [shssoichiro/oxipng](https://github.com/shssoichiro/oxipng) |
 | ECT | 0.9.5 | Windows, macOS | [fhanau/Efficient-Compression-Tool](https://github.com/fhanau/Efficient-Compression-Tool) |
 | jpegoptim | 1.5.6-rel1 | Windows only | [XhmikosR/jpegoptim-windows](https://github.com/XhmikosR/jpegoptim-windows) |
@@ -187,6 +187,16 @@ official project. A download that does not match its pin aborts the build.
 the other platforms, so there is nothing to pin and verify. On macOS and Linux
 the app resolves them from `PATH` instead, which is why the install section
 asks you to run one `brew`/`apt` line.
+
+cpdf is left out on Linux arm64 for a different reason: the binary upstream
+publishes is linked against `GLIBC_2.42`, which no current distribution ships,
+so it cannot run at all. Without cpdf the app skips linearisation and the final
+squeeze; every other step works. `tools/deps.lock.json` keeps the entry, with
+its hash, ready to re-enable.
+
+An sRGB ICC profile is bundled on every platform (`src/assets/srgb.icc`), so
+PDF/A works even where Ghostscript ships none — Homebrew's build, for one,
+does not.
 
 A dependency that is not pinned yet shows `"sha256": null`. Run
 `python tools/fetch_deps.py --update-lock` once, check the hash it records
