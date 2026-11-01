@@ -424,7 +424,46 @@
           "to": "bin/jpegoptim.exe"
         }
       ],
-      "optional": true
+      "optional": true,
+      "comment": "Kept on XhmikosR's build rather than the author's own because it is linked against mozjpeg, which optimises JPEGs better than plain libjpeg. Both are pinned GitHub releases, so reliability is equal; this is a capability choice, not inertia."
+    },
+    {
+      "name": "jpegoptim",
+      "platform": "linux-x86_64",
+      "version": "1.5.6",
+      "homepage": "https://github.com/tjko/jpegoptim",
+      "license": "GPL-3.0",
+      "comment": "Built and published by jpegoptim's own author. No arm64 build exists upstream.",
+      "url": "https://github.com/tjko/jpegoptim/releases/download/v1.5.6/jpegoptim-1.5.6-x64-linux.zip",
+      "sha256": "f480db3bdda996cb1ed366f0877f2fe9e0d8708487f7d00e4c7166b52a9e2c1a",
+      "archive": "zip",
+      "optional": true,
+      "members": [
+        {
+          "from": "**/jpegoptim",
+          "to": "bin/jpegoptim",
+          "executable": true
+        }
+      ]
+    },
+    {
+      "name": "jpegoptim",
+      "platform": "macos-x86_64",
+      "version": "1.5.6",
+      "homepage": "https://github.com/tjko/jpegoptim",
+      "license": "GPL-3.0",
+      "comment": "Built and published by jpegoptim's own author. No arm64 build exists upstream.",
+      "url": "https://github.com/tjko/jpegoptim/releases/download/v1.5.6/jpegoptim-1.5.6-x64-osx.zip",
+      "sha256": "5ca21c2f8f02ed815b00e453b0ea235d84ac6a99704d15bb587f952f700d6d44",
+      "archive": "zip",
+      "optional": true,
+      "members": [
+        {
+          "from": "**/jpegoptim",
+          "to": "bin/jpegoptim",
+          "executable": true
+        }
+      ]
     },
     {
       "name": "pngquant",
