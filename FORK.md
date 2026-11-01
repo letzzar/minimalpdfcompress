@@ -207,6 +207,39 @@ Upstream's `Win_Binaries` release also carried `advpng`, `optipng`, `pngout`,
 any of them, so they are not bundled here — fewer console executables in the
 package is also fewer heuristic triggers.
 
+### Platforms
+
+All five targets build green in CI and produce an attested archive:
+`windows-x86_64`, `linux-x86_64`, `linux-aarch64`, `macos-x86_64`,
+`macos-aarch64`. Each is built on its own runner; nothing is cross-compiled.
+
+Getting there needed four fixes beyond the build matrix, each found by running
+the pipelines on the runner rather than by assuming:
+
+- **The window icon never worked outside Windows.** `root.iconbitmap()` only
+  accepts `.ico`, and only on Windows. It is now `iconphoto()` with a real PNG,
+  which every platform understands; the `.ico` is still used on Windows for a
+  sharper taskbar icon.
+- **`find_executable()` returned the bare command name** when a tool came from
+  `PATH` rather than the bundled `bin/`. `optimize_pdfa()` derives the
+  Ghostscript root from that path, so on Linux and macOS it resolved `gs`
+  against the working directory. It now returns what `shutil.which()` found.
+- **The ICC profile lookup only knew the Windows layout.** It now also walks
+  `share/ghostscript/<version>/` under the Ghostscript root, `/usr`,
+  `/usr/local` and `/opt/homebrew`. Homebrew's Ghostscript ships no profiles at
+  all, so a copy is bundled at `src/assets/srgb.icc` as the final fallback.
+- **cpdf for Linux arm64 is unusable.** Upstream links it against `GLIBC_2.42`,
+  which no current distribution ships, so it cannot start. That entry is
+  disabled in the manifest with its hash and the reason kept; on that platform
+  linearisation and the final squeeze are skipped and everything else works.
+
+Windows arm64 is deliberately absent: Ghostscript publishes no arm64 Windows
+binary, and Windows on ARM runs the x86_64 build under emulation.
+
+What is still rough on macOS: the build is a plain folder, not a `.app` bundle,
+so there is no Dock icon, and the binary is unsigned and unnotarised, which
+means `xattr -dr com.apple.quarantine` before first run.
+
 ## 6. Files added
 
 ```
