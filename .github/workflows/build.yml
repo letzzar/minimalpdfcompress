@@ -98,9 +98,28 @@ jobs:
           path: dist/*.zip
           if-no-files-found: error
 
-      - name: Attach to release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v3
+  # One job, after every platform has built, so the release is created once
+  # with all five archives. Doing it inside the matrix had five jobs racing to
+  # create the same release. This is also the only job that needs write access.
+  release:
+    name: release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v8
         with:
-          files: dist/*.zip
+          path: artifacts
+          merge-multiple: true
+
+      - name: List what will be published
+        run: ls -la artifacts/
+
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: artifacts/*.zip
           generate_release_notes: true
+          fail_on_unmatched_files: true
