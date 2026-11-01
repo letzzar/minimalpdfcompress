@@ -8,22 +8,25 @@ Estado al final de la última sesión. Leer al empezar, actualizar al terminar.
 
 El fork está publicado y funcionando en las cinco plataformas. La última
 release es
-[v1.10.0-fork.4](https://github.com/letzzar/minimalpdfcompress/releases/tag/v1.10.0-fork.4)
-con ocho archivos: instalador de Windows, `.deb` para amd64 y arm64, y los cinco
-portables. Todos con attestation firmada. Es la primera con la interfaz en
-español.
+[v1.11.0-fork.1](https://github.com/letzzar/minimalpdfcompress/releases/tag/v1.11.0-fork.1),
+publicada el 2026-11-01, con ocho archivos: instalador de Windows, `.deb` para
+amd64 y arm64, y los cinco portables. Todos con attestation firmada,
+comprobada en el instalador. Es la primera con la interfaz rehecha; la
+traducción al español salió en `v1.10.0-fork.4`.
 
-El Director ha probado a mano Windows, macOS y Raspberry Pi: funcionan.
+El Director ha probado a mano Windows, macOS y Raspberry Pi con la 1.10:
+funcionan.
 
-**Hay quince commits en `main` por encima de esa etiqueta y sin publicar**: el
-icono sin marco negro, `jpegoptim` empaquetado en Linux y macOS, `pngquant`
-compilado desde crates.io y toda la modernización de la interfaz. Nada de eso
-ha llegado todavía a una release. Y nada de ello se ha visto fuera de Windows:
-la interfaz nueva sólo se ha fotografiado aquí.
+`APP_VERSION` es **`1.11.0`** desde el 2026-11-01, por decisión del Director.
+El `VersionInfoVersion` del instalador estaba clavado a mano en `1.10.0.0` y
+ahora sale de `AppVersion`.
 
-`APP_VERSION` es **`1.11.0`** desde el 2026-11-01, por decisión del Director,
-así que la próxima etiqueta es `v1.11.0-fork.1`. El `VersionInfoVersion` del
-instalador estaba clavado a mano en `1.10.0.0` y ahora sale de `AppVersion`.
+**Nada de la interfaz nueva se ha visto fuera de Windows.** CI demuestra que
+los cinco objetivos compilan y que los pipelines de compresión funcionan, no
+que la ventana se abra bien en macOS o en la Raspberry. Lo siguiente es
+probar los binarios de esta release a mano en los tres sistemas, y de paso
+pulsar el selector de idioma, que sigue sin que nadie haya visto el aviso de
+reinicio.
 
 ## Completado
 
