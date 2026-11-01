@@ -67,6 +67,12 @@ Both artefacts of this fork's build were submitted to VirusTotal on
 | this fork `MinimalPDF_Compress-1.10.0-win64.zip` | `39d8d6bc3d…` | **1 / 68** |
 | this fork, the Inno Setup installer | `c3a4ae59fd…` | **1 / 68** |
 
+The 1.11.0 installer was measured separately on 2026-11-01,
+`61a3a8c359…`: **0 detections**. 44 engines returned a verdict and none
+flagged it, 23 timed out on the 42 MB file and 3 failed, which is ordinary for
+an installer this size. DeepInstinct, the only engine that flagged the 1.10.0
+installer, is clean on this one.
+
 The single remaining hit on the executable is Microsoft,
 `Trojan:Win32/Wacatac.C!ml` — a machine-learning signature, which is what an
 unsigned binary attracts. On the zip the only hit is Zillya,

@@ -118,8 +118,13 @@ Nada a medias.
   entra al repo, se mueve a `docs/` o se queda fuera.
 - `jpegoptim` es la única herramienta que el README sigue pidiendo instalar a
   mano fuera de Windows.
-- Firma de código: lo único que queda para la última detección de antivirus.
-- El instalador no se ha medido en VirusTotal.
+- Firma de código: sigue sin hacerse. Es lo que de verdad termina con las
+  heurísticas de aprendizaje automático y con SmartScreen, que es una capa
+  aparte y sólo se gana a base de descargas.
+- El instalador de la 1.11.0 se midió el 2026-11-01: **cero detecciones**
+  (44 motores con veredicto, 23 agotaron el tiempo por el tamaño, 3 fallaron).
+  DeepInstinct, el único que marcaba el instalador de la 1.10.0, está limpio.
+  El `.exe` suelto y los portables de la 1.11.0 no se han medido.
 - `src/dependencies/pdf.ico` no lo referencia nada; anotado, no borrado.
 
 - **Marco negro del icono: resuelto.** El arte de upstream traía el fondo
