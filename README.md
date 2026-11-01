@@ -47,9 +47,22 @@ Two things, documented in full in **[FORK.md](FORK.md)**:
 
 ## Install
 
-Grab the archive for your platform from [Releases](../../releases), unzip it
-anywhere, and run it. There is no installer, and nothing is written outside the
-folder except your settings.
+From [Releases](../../releases). Installers for Windows and Debian-based Linux,
+portable archives for everything.
+
+| Platform | Installer | What it does |
+|---|---|---|
+| Windows x86_64 | `…-windows-x86_64-setup.exe` | Asks **before** anything is elevated whether to install for you only or for all users. Choosing yourself installs to `%LOCALAPPDATA%\Programs` and never prompts for admin; choosing all users installs to `Program Files` and asks for admin only at that point. |
+| Debian / Ubuntu / Raspberry Pi OS | `minimalpdf-compress_<version>_amd64.deb`<br>`…_arm64.deb` | `sudo apt install ./minimalpdf-compress_*.deb` — installs to `/opt`, adds a menu entry, icon and a `minimalpdf-compress` command. |
+
+The Windows installer also accepts `/CURRENTUSER` or `/ALLUSERS` with
+`/VERYSILENT` for unattended deployment.
+
+### Portable
+
+Unzip anywhere and run; nothing is written outside the folder except your
+settings. This is the only option on macOS, where the `.app` is already the
+installable form.
 
 | Platform | Archive | Run |
 |---|---|---|
@@ -159,7 +172,13 @@ python build.py --skip-deps   # reuse binaries already fetched into src/
 python build.py --onefile     # also emit a single file (the AV-noisy variant)
 python tools/fetch_deps.py    # fetch and verify dependencies only
 python tools/smoke_test.py    # run the real pipelines over pdf_testing/
+python tools/package.py       # build the installer for this platform
 ```
+
+`tools/package.py` turns what is in `dist/` into an installer: an Inno Setup
+`.exe` on Windows (needs [Inno Setup 6](https://jrsoftware.org/isinfo.php)), a
+`.deb` on Linux (needs `dpkg-deb`). On macOS it does nothing, because the
+`.app` is already the installable form.
 
 To run straight from source without building:
 

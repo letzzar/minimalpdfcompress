@@ -83,6 +83,32 @@ jobs:
       - name: Smoke test the pipelines
         run: python tools/smoke_test.py
 
+      - name: Ensure Inno Setup is present
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          if (-not (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe")) {
+            choco install innosetup -y --no-progress
+          }
+
+      - name: Build the installer
+        if: runner.os != 'macOS'
+        run: python tools/package.py
+
+      # Install the package for real rather than trusting that it built.
+      - name: Check the .deb installs
+        if: runner.os == 'Linux'
+        run: |
+          deb=$(ls dist/*.deb)
+          dpkg-deb --info "$deb"
+          sudo dpkg -i "$deb"
+          test -x /opt/minimalpdf-compress/MinimalPDF_Compress
+          command -v minimalpdf-compress
+          test -f /usr/share/applications/minimalpdf-compress.desktop
+          test -f /usr/share/icons/hicolor/256x256/apps/minimalpdf-compress.png
+          sudo dpkg -r minimalpdf-compress
+          echo "install, launcher, menu entry and icon all present"
+
       - name: List what was built
         shell: bash
         run: ls -la dist/
@@ -92,10 +118,19 @@ jobs:
         with:
           subject-path: dist/*.zip
 
+      - name: Attest installer provenance
+        if: runner.os != 'macOS'
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: ${{ runner.os == 'Windows' && 'dist/*setup.exe' || 'dist/*.deb' }}
+
       - uses: actions/upload-artifact@v7
         with:
           name: MinimalPDF_Compress-${{ matrix.platform }}
-          path: dist/*.zip
+          path: |
+            dist/*.zip
+            dist/*setup.exe
+            dist/*.deb
           if-no-files-found: error
 
   # One job, after every platform has built, so the release is created once
@@ -120,6 +155,9 @@ jobs:
 
       - uses: softprops/action-gh-release@v3
         with:
-          files: artifacts/*.zip
+          files: |
+            artifacts/*.zip
+            artifacts/*setup.exe
+            artifacts/*.deb
           generate_release_notes: true
           fail_on_unmatched_files: true

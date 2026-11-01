@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=MinimalPDF Compress
+GenericName=PDF Compressor
+Comment=Compress and manipulate PDF files, entirely offline
+Exec=minimalpdf-compress
+Icon=minimalpdf-compress
+Terminal=false
+Categories=Office;Graphics;Utility;
+Keywords=PDF;compress;optimise;optimize;merge;split;watermark;
