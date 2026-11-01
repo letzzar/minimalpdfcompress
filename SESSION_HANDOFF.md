@@ -51,16 +51,24 @@ Nada a medias.
 - El selector de idioma no se ha probado pulsándolo: se ha verificado que el
   valor persiste y que la app arranca en ambos idiomas, pero el diálogo de
   "hay que reiniciar" no lo ha visto nadie todavía.
-- `pngquant.org` es el único host del manifiesto que no es GitHub y ya ha
-  fallado dos veces. Ahora la build sobrevive, pero si vuelve a caer el
-  ejecutable no irá en el paquete de Windows y nadie lo notará salvo por el
-  aviso en el log. Convendría buscarle un espejo estable.
 - El instalador de Windows nunca se ha medido en VirusTotal.
+- pngquant se compila ahora desde crates.io y sólo se empaqueta en Windows. La
+  misma receta serviría para macOS y Linux, lo que quitaría pngquant de la
+  línea de `brew`/`apt` del README. Sin hacer; no se ha pedido.
 - Firma de código: lo único que queda para la última detección de antivirus.
 - El instalador no se ha medido en VirusTotal.
 - `src/dependencies/pdf.ico` no lo referencia nada; anotado, no borrado.
 
 ## Decisiones tomadas
+
+- `pngquant.org` se abandonó como origen: dos caídas desde los runners, y
+  comprobado que no es cosa de Cloudflare ni de los bloqueos de España (resuelve
+  a 83.169.2.68, sin cabecera `CF-RAY`). No hay espejo fiable del binario, así
+  que se compila desde el código que el propio autor publica en crates.io,
+  fijado por hash. Verificado en CI el 2026-11-01.
+- Las herramientas opcionales en ejecución también lo son al compilar: si no se
+  pueden obtener, se avisa y se sigue. Un hash que no cuadra sigue siendo fatal
+  siempre, y por eso va por una excepción distinta.
 
 - `APP_VERSION` se queda en `"1.10.0"`. El número de build del fork va en la
   etiqueta. No volver a proponerlo.
