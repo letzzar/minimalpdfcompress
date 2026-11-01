@@ -4,6 +4,8 @@ import ctypes
 import tkinter as tk
 import logging
 from pathlib import Path
+from i18n import load_saved_language
+from utils import user_config_path
 from gui import GhostscriptGUI
 
 def setup_logging():
@@ -26,6 +28,8 @@ def set_dpi_awareness():
 def main():
     setup_logging()
     set_dpi_awareness()
+    # Before any widget exists: the interface reads its labels as it is built.
+    load_saved_language(user_config_path("settings.json"))
     try:
         root = tk.Tk()
         app = GhostscriptGUI(root)

@@ -103,6 +103,7 @@ TOOLTIP_TEXT = {
     "repair_process_btn": "Attempt to rebuild a corrupted or damaged PDF file. Success is not guaranteed.",
 
     "settings_dark_mode": "Toggle the application's appearance between light and dark themes.",
+    "settings_language": "Choose the interface language. The change applies the next time you open the application.",
     "settings_logging": "Enable logging of detailed application activity to 'app.log' in the program folder. Useful for troubleshooting.",
     "settings_use_default_folder": "If enabled, all output files will be saved to the specified default folder instead of the input file's folder.",
     "settings_default_folder_entry": "Browse for and set a default folder for all output files.",
@@ -113,3 +114,131 @@ TOOLTIP_TEXT = {
     "settings_buy_coffee": "If you find this app useful, please consider supporting its development!",
     "settings_check_updates": "Open the application's download page to check for new versions.",
 }
+
+# Spanish lives in a parallel dictionary keyed the same way, rather than going
+# through i18n.t(), because these are paragraphs: using them as catalogue keys
+# would be unreadable and would break every translation on a typo in the
+# English text.
+TOOLTIP_TEXT_ES = {
+    "drop_zone": "Arrastra aquí un archivo PDF o una carpeta, o usa los botones de abajo.",
+    "file_selector_input": "Archivo o carpeta de origen seleccionado. Este campo no se puede editar.",
+    "file_selector_output": "Ruta de destino de los archivos procesados. Puedes editarla a mano.",
+    "file_selector_browse": "Elegir la carpeta o el nombre del archivo de salida.",
+
+    "compress_mode_compression": "Compresión con pérdida. Reduce el tamaño remuestreando y recomprimiendo las imágenes en color, y comprime sin pérdida las de escala de grises.",
+    "compress_mode_lossless": "Compresión sin pérdida. Optimiza imágenes y flujos de datos sin bajar la calidad. La reducción de tamaño puede ser pequeña.",
+    "compress_mode_pdfa": "Convierte el PDF al formato PDF/A-2b, un estándar de archivo a largo plazo. Puede aumentar el tamaño.",
+    "compress_mode_remove_images": "Elimina todas las imágenes del PDF y las sustituye por huecos en blanco.",
+    "compress_true_lossless": "Optimización sin pérdida estricta. No recodifica los JPEG en ningún caso (por ser un formato con pérdida), así que conserva sus datos originales intactos. Suele comprimir menos que el modo «Sin pérdida» normal.",
+    "compress_grayscale_check": "Convierte todo el PDF a escala de grises. Reduce bastante el tamaño conservando la calidad de las fotos. Solo disponible en el modo «Compresión».",
+    "compress_cmyk_check": "Convierte todo el PDF al espacio de color CMYK. Suele hacer falta para imprenta profesional, pero puede aumentar el tamaño.",
+    "compress_dpi_slider": "Resolución de destino (puntos por pulgada) de las imágenes en la compresión con pérdida. También puedes escribir un valor de 0 a 600 en la casilla. Cuanto más bajo, menor el archivo.",
+    "compress_process_btn": "Empezar a comprimir con las opciones elegidas.",
+    "output_remove_interactive": "Quita del PDF todos los elementos interactivos: anotaciones, enlaces y campos de formulario.",
+    "output_strip_metadata": "Elimina todos los metadatos del documento: título, autor, asunto, palabras clave y datos de creación.",
+    "output_bicubic": "Usa un algoritmo de más calidad (bicúbico) para remuestrear las imágenes. Da resultados más nítidos, pero es algo más lento.",
+    "output_fast_web": "Lineariza el PDF para que pueda verse en el navegador antes de haberse descargado entero.",
+    "output_darken_text": "Fuerza a negro puro todo el texto del documento. Útil para mejorar la legibilidad de documentos escaneados.",
+    "compress_preserve_ocr": "Fuerza la incrustación de todas las fuentes y conserva el contenido marcado, para que el texto de OCR (sobre todo en cirílico) no se corrompa.",
+    "output_remove_openaction": "Quita las instrucciones que se ejecutan al abrir el PDF, como imprimir automáticamente o saltar a una página.",
+    "compress_only_if_smaller": "Si está marcado, no se guarda nada cuando la compresión da un archivo igual o mayor. Sin marcar, se guarda el original en su lugar. No afecta a la conversión a PDF/A.",
+    "compress_fast_mode": "Prioriza la velocidad sobre el grado de compresión. Se salta los pasos de optimización más lentos.",
+    "compress_downsample_threshold": "Evita aumentar la resolución. Solo reduce las imágenes que superan los PPP de destino, así no se emborronan las pequeñas y además suele comprimir mejor. Conviene dejarlo activado.",
+    "compress_detect_duplicate_images": "Detecta y reutiliza las imágenes idénticas para ahorrar espacio. Desmárcalo si notas cuelgues o un consumo de memoria muy alto con archivos grandes.",
+    "compress_quantize": "Reduce el número de colores de las imágenes. Un nivel 4 deja cada canal (rojo, verde y azul) en 4 tonos, o sea una paleta de 64 colores (4x4x4). Puede reducir mucho el tamaño en fotos o degradados, pero puede provocar bandeado. Solo en el modo «Compresión».",
+    "compress_safe_mode": "Compresión más prudente, aunque menos eficaz. Analiza las imágenes y evita aplicar JPEG a gráficos simples (logotipos, diagramas), lo que previene artefactos o líneas que desaparecen. Úsalo si el PDF comprimido sale con defectos visuales.",
+    "compress_lossless_enc": "Usa codificación ZIP (Flate) en vez de JPEG al remuestrear. Conserva la imagen remuestreada sin añadir artefactos, pero da archivos más grandes.",
+
+    "merge_tree": "Lista de archivos que se van a unir. Arrástralos aquí o usa el botón «Añadir archivos».",
+    "merge_add_btn": "Añadir uno o más PDF a la lista.",
+    "merge_remove_btn": "Quitar de la lista los archivos seleccionados.",
+    "merge_move_up_btn": "Subir el archivo seleccionado en el orden de unión.",
+    "merge_move_down_btn": "Bajar el archivo seleccionado en el orden de unión.",
+    "merge_process_btn": "Unir todos los archivos de la lista en un solo PDF.",
+
+    "split_mode_single": "Crear un PDF por cada página del documento original.",
+    "split_mode_every_n": "Crear PDF que contengan un número determinado de páginas (N) cada uno.",
+    "split_mode_custom": "Extraer un conjunto de páginas o intervalos a un único PDF nuevo (p. ej., «1, 3-5, 8-end»).",
+    "split_process_btn": "Empezar a dividir el PDF seleccionado.",
+
+    "rotate_angle_btns": "Ángulo con el que se rotarán todas las páginas del documento.",
+    "rotate_preview": "Vista previa de la primera página con la rotación aplicada.",
+    "rotate_process_btn": "Aplicar la rotación a todas las páginas del PDF.",
+
+    "delete_pages_entry": "Páginas o intervalos que quieres eliminar (p. ej., «1, 3-5, 8-end»).",
+    "delete_preview": "Vista previa de la primera página. No refleja las páginas eliminadas.",
+    "delete_process_btn": "Eliminar definitivamente del PDF las páginas indicadas.",
+
+    "password_user_entry": "Contraseña de usuario, necesaria para abrir el PDF. Si solo pones contraseña de propietario, puedes dejarla vacía.",
+    "password_owner_entry": "Contraseña de propietario. Da acceso total y se salta todos los permisos. Puede ponerse sin contraseña de usuario.",
+    "password_decrypt_entry": "Escribe la contraseña actual, de usuario o de propietario, para quitarle todo el cifrado al PDF.",
+    "password_allow_printing": "Permite imprimir el documento.",
+    "password_allow_modification": "Permite modificar el contenido del documento.",
+    "password_allow_copy": "Permite copiar texto e imágenes del documento.",
+    "password_allow_annotations": "Permite añadir o modificar anotaciones y campos de formulario.",
+    "password_encrypt_btn": "Cifrar el PDF con las contraseñas y permisos indicados.",
+    "password_decrypt_btn": "Quitar del PDF todas las contraseñas y el cifrado.",
+
+    "stamp_image_browse": "Elegir una imagen para usarla como sello. Los PNG con transparencia funcionan mejor.",
+    "stamp_image_scale": "Tamaño del sello como porcentaje de sus dimensiones originales (del 10% al 200%).",
+    "stamp_text_entry": "Texto que quieres aplicar como sello o marca de agua.",
+    "stamp_bates_check": "Activa la numeración Bates correlativa. Usa la variable «%Bates» dentro del texto para indicar dónde va el número.",
+    "stamp_bates_start": "Número por el que empieza la secuencia Bates.",
+    "stamp_font_combo": "Fuente del sello de texto. Son fuentes estándar de PDF y no hace falta tenerlas instaladas.",
+    "stamp_font_size": "Cuerpo de la fuente del sello de texto.",
+    "stamp_font_color": "Color del sello de texto.",
+    "stamp_position": "Dónde se coloca el sello en la página.",
+    "stamp_opacity": "Transparencia del sello. 1,0 es opaco del todo; 0,1, apenas visible.",
+    "stamp_on_top": "Colocar el sello sobre el contenido de la página (marca de agua) o por debajo (fondo).",
+    "stamp_process_btn": "Aplicar al PDF el sello configurado.",
+
+    "hf_mode_page_num": "Añade solo el número de página (p. ej., «5»). Usa la variable «%Page».",
+    "hf_mode_page_x_of_y": "Añade el número de página y el total (p. ej., «5 de 20»). Usa «%Page of %EndPage».",
+    "hf_mode_custom": "Añadir texto propio. Puedes usar variables como %Page, %EndPage, %Date, %Time y %File.",
+    "hf_position": "Dónde se coloca el encabezado o el pie en la página.",
+    "hf_font_combo": "Fuente del texto del encabezado o pie.",
+    "hf_font_size": "Cuerpo de la fuente del encabezado o pie.",
+    "hf_font_color": "Color del texto del encabezado o pie.",
+    "hf_page_range": "Aplicar el encabezado o pie solo a un intervalo de páginas (p. ej., «2-end»). Déjalo vacío para todas.",
+    "hf_process_btn": "Añadir al PDF el encabezado o pie configurado.",
+
+    "toc_title": "Título que aparecerá en lo alto de la página del índice.",
+    "toc_font": "Fuente del texto del índice.",
+    "toc_font_size": "Cuerpo de la fuente del índice.",
+    "toc_dot_leaders": "Si se activa, añade una línea de puntos entre el título del marcador y el número de página.",
+    "toc_no_bookmark": "Si se activa, el propio índice no llevará marcador en el PDF final.",
+    "toc_process_btn": "Generar una página de índice a partir de los marcadores del PDF.",
+
+    "meta_browse_btn": "Elegir un PDF para cargar y editar sus metadatos.",
+    "meta_title": "Título del documento.",
+    "meta_author": "Autor del documento.",
+    "meta_subject": "Asunto del documento.",
+    "meta_keywords": "Palabras clave del documento, separadas por comas.",
+    "meta_process_btn": "Guardar los cambios. AVISO: sobrescribe los metadatos del archivo original.",
+
+    "convert_format_btns": "Formato de imagen de salida para cada página.",
+    "convert_dpi_slider": "Resolución (puntos por pulgada) de las imágenes de salida. Cuanto más alta, imágenes más grandes y detalladas.",
+    "convert_process_btn": "Convertir cada página del PDF en un archivo de imagen.",
+
+    "repair_process_btn": "Intentar reconstruir un PDF dañado o corrupto. No hay garantía de que funcione.",
+
+    "settings_dark_mode": "Alternar el aspecto de la aplicación entre tema claro y oscuro.",
+    "settings_language": "Idioma de la interfaz. El cambio se aplica la próxima vez que abras la aplicación.",
+    "settings_logging": "Guardar un registro detallado de la actividad en «app.log», dentro de la carpeta del programa. Útil para diagnosticar problemas.",
+    "settings_use_default_folder": "Si se activa, todos los archivos de salida van a la carpeta indicada en vez de a la del archivo de entrada.",
+    "settings_default_folder_entry": "Elegir la carpeta por omisión para todos los archivos de salida.",
+    "settings_prefix": "Prefijo que se añade al principio del nombre de todos los archivos de salida.",
+    "settings_suffix": "Sufijo que se añade al final del nombre de los archivos de salida, antes de la extensión.",
+    "settings_add_date": "Añade la fecha actual (AAAA-MM-DD) al nombre del archivo de salida.",
+    "settings_add_time": "Añade la hora actual (HH-MM-SS) al nombre del archivo de salida.",
+    "settings_buy_coffee": "Si la aplicación te resulta útil, puedes apoyar su desarrollo.",
+    "settings_check_updates": "Abrir la página de descargas para ver si hay una versión nueva.",
+}
+
+_CATALOGUES = {"es": TOOLTIP_TEXT_ES}
+
+
+def tooltip(key):
+    """Tooltip text in the active language, falling back to English."""
+    import i18n
+    return _CATALOGUES.get(i18n.get_language(), {}).get(key) or TOOLTIP_TEXT.get(key)

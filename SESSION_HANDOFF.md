@@ -32,31 +32,25 @@ El Director ha probado a mano Windows, macOS y Raspberry Pi: funcionan.
 - Aportado a upstream: [PR #63](https://github.com/deminimis/minimalpdfcompress/pull/63)
   (abierto, `MERGEABLE`) y un
   [comentario en el issue #50](https://github.com/deminimis/minimalpdfcompress/issues/50#issuecomment-6550643907).
+- **Interfaz traducida al español**, con selector de idioma en Ajustes y aviso
+  de reinicio. 141 cadenas de interfaz y 100 textos de ayuda, con paridad de
+  claves comprobada. El idioma se detecta del sistema en el primer arranque.
+  El `TranslatedCombobox` que estaba planificado resultó innecesario: los
+  `Radiobutton` ya separaban `text=` de `value=`, y la única excepción era la
+  rotación, que se arregló con una línea.
 
 ## En curso
 
-**Traducción al español con selector de idioma en Ajustes.** Acordado que
-cambiar el idioma pedirá reiniciar la aplicación.
-
-Trabajo hecho hasta ahora: sólo el análisis. Medido el alcance —74 cadenas
-únicas en `text=` de `gui.py`, 99 tooltips, 12 diálogos, 6 pestañas, 5
-desplegables, unas 210 en total— y localizado el bloqueante: los textos
-mostrados son a la vez identificadores lógicos y valores guardados en
-`settings.json`.
-
-Plan acordado:
-1. `src/i18n.py` con catálogo en diccionarios, clave = cadena inglesa → verify: `t()` devuelve español y cae a inglés si falta
-2. Desacoplar los desplegables con un `TranslatedCombobox` en `ui_components.py` → verify: `smoke_test.py` pasa y los modos siguen detectándose
-3. Aplicar `t()` en `gui.py` y `tooltips.py` → verify: la app arranca en ambos idiomas
-4. Selector en Ajustes + aviso de reinicio → verify: cambia, persiste y al reabrir está en el idioma elegido
-
-Sin empezar ninguno de los cuatro pasos.
+Nada a medias.
 
 ## Pendiente
 
-- La traducción, los cuatro pasos de arriba.
 - **Sin cobertura automática de las once pestañas de utilidades.** Es la
   carencia más seria; ver `PROYECTO.md`.
+- El selector de idioma no se ha probado pulsándolo: se ha verificado que el
+  valor persiste y que la app arranca en ambos idiomas, pero el diálogo de
+  "hay que reiniciar" no lo ha visto nadie todavía.
+- Publicar una versión con la traducción; la última release es anterior.
 - Firma de código: lo único que queda para la última detección de antivirus.
 - El instalador no se ha medido en VirusTotal.
 - `src/dependencies/pdf.ico` no lo referencia nada; anotado, no borrado.
@@ -65,4 +59,8 @@ Sin empezar ninguno de los cuatro pasos.
 
 - `APP_VERSION` se queda en `"1.10.0"`. El número de build del fork va en la
   etiqueta. No volver a proponerlo.
-- Cambiar de idioma pedirá reiniciar, no se reconstruye la interfaz en caliente.
+- Cambiar de idioma pide reiniciar; no se reconstruye la interfaz en caliente,
+  porque perdería los archivos en cola y las vistas previas.
+- El catálogo se indexa por la cadena inglesa, no por identificadores
+  inventados: lo no traducido cae a inglés legible en vez de a un nombre de
+  clave.

@@ -15,14 +15,15 @@ terceros invocados como subprocesos. No abre ninguna conexión de red.
 | Fichero | Líneas | Responsabilidad | Tocar aquí si… |
 |---|---:|---|---|
 | `src/main.py` | 37 | Arranque: logging, DPI awareness, lanza la GUI | cambia el arranque o el logging global |
-| `src/gui.py` | 1929 | **Toda** la interfaz: layout, estado, hilos, vistas previas, ajustes | cualquier cosa visible |
+| `src/gui.py` | 1963 | **Toda** la interfaz: layout, estado, hilos, vistas previas, ajustes | cualquier cosa visible |
+| `src/i18n.py` | 258 | Catálogo de traducción y elección de idioma | añadir o corregir textos traducidos, añadir un idioma |
 | `src/backend.py` | 606 | Lógica de las 11 pestañas de utilidades | merge, split, rotar, sellos, metadatos… |
 | `src/pdf_optimizer.py` | 654 | Clase `PdfOptimizer`: los cuatro modos de compresión | compresión, lossless, PDF/A, quitar imágenes |
 | `src/utils.py` | 129 | Localizar binarios, rutas de recursos, ejecutar subprocesos | invocación de herramientas, rutas, configuración |
 | `src/ui_components.py` | 356 | Widgets propios (`CompressionGauge`, `CustomSlider`, `PositionSelector`, `DropZone`…) | comportamiento de un control concreto |
 | `src/styles.py` | 115 | Tema claro/oscuro, paletas | colores, tipografías |
 | `src/constants.py` | 53 | Versión y constantes compartidas | **cuidado**: sus valores son identificadores lógicos |
-| `src/tooltips.py` | 115 | Diccionario con 99 textos de ayuda | textos de ayuda |
+| `src/tooltips.py` | 244 | 100 textos de ayuda en inglés y español, más el accesor `tooltip()` | textos de ayuda |
 
 `gui.py` es con diferencia el módulo más grande y concentra responsabilidades
 que en otro proyecto estarían separadas. Mientras no haga falta, no se parte:
@@ -101,10 +102,19 @@ Lo que hay que tener presente antes de prometer nada:
   tienen ninguna cobertura automática**: merge, split, rotate, delete, password,
   stamp, cabecera/pie, índice, metadatos, PDF a imagen y reparación se verifican
   sólo a mano. Es la carencia más seria del proyecto.
-- **Los textos mostrados son identificadores lógicos.** Bloquea la traducción
-  hasta desacoplarlos. Medido: 74 cadenas únicas en `text=` de `gui.py`, 99
-  tooltips, 12 diálogos, 6 pestañas, 5 desplegables; unas 210 en total. Tres
-  `text=` son f-strings con variables y necesitan formato, no traducción directa.
+- **Los textos mostrados son identificadores lógicos.** Sigue siendo cierto y
+  sigue siendo la trampa principal del código: `gui.py` compara
+  `mode == "Compression"` y `backend.py` traduce `POS_TOP_LEFT` a argumentos de
+  cpdf. La traducción no lo cambió, lo rodeó: los `Radiobutton` ya separaban
+  `text=` de `value=`, así que sólo se traduce lo que se ve. Al añadir
+  cualquier control nuevo hay que mantener esa separación.
+- **La interfaz está traducida, el idioma se elige en Ajustes y requiere
+  reiniciar.** Tkinter no permite reetiquetar una interfaz ya construida y
+  reconstruirla perdería los archivos en cola, así que el cambio se difiere a
+  propósito. `i18n.load_saved_language()` se llama desde `main.py` antes de
+  crear el primer widget.
+- Tres `text=` son f-strings con variables (`"({dpi} DPI)"`, `"{escala}%"`) y
+  se han dejado sin traducir: no llevan palabras.
 - **Sin firma de código** en ninguna plataforma. Es lo único que queda para
   eliminar la última detección de antivirus (1/71, Microsoft, heurística de ML).
 - **Sin cpdf en Linux arm64**: upstream lo enlaza contra GLIBC 2.42. Se saltan la

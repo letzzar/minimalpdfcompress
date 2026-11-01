@@ -147,8 +147,10 @@ Leer `PROYECTO.md` y proponer los cambios necesarios si hiciera falta.
   el equipo destino. La única escritura fuera de los PDF generados es
   `settings.json`, y su fallo nunca debe impedir usar la app.
 - **Multiplataforma:** el código específico de un sistema va protegido por
-  `sys.platform` y con alternativa en los demás. Todo texto visible debe pasar
-  por `src/i18n.py` en español e inglés (en construcción; ver `PROYECTO.md`).
+  `sys.platform` y con alternativa en los demás. Todo texto visible pasa por
+  `t()` de `src/i18n.py`, y los textos de ayuda por `tooltip()` de
+  `src/tooltips.py`, en español e inglés. Al añadir una cadena nueva hay que
+  darla de alta en el catálogo; si no, se queda en inglés sin avisar.
 - **Iteraciones cortas:** te pediré una característica o corrección a la vez. No
   implementes funcionalidades extra que no haya solicitado explícitamente o que
   no figuren en el diseño del proyecto.

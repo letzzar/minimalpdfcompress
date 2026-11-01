@@ -28,7 +28,9 @@ from constants import (APP_VERSION, ROTATION_MAP, PDF_FONTS, SPLIT_MODES, SPLIT_
                        PAGE_NUMBER_POSITIONS, ToolNotFound)
 from ui_components import (ScrolledFrame, FileSelector, Tooltip, ModernToggle,
                            CompressionGauge, DropZone, PositionSelector, CustomSlider)
-from tooltips import TOOLTIP_TEXT
+from tooltips import tooltip
+import i18n
+from i18n import t
 from utils import resource_path, user_config_path
 
 IS_WINDOWS = sys.platform == "win32"
@@ -44,6 +46,8 @@ class GeneralSettings:
     dark_mode_enabled: tk.BooleanVar = tk_bool(True)
     logging_enabled: tk.BooleanVar = tk_bool(False)
     window_geometry: tk.StringVar = tk_str()
+    # Resolved before the interface is built; see i18n.load_saved_language.
+    language: tk.StringVar = field(default_factory=lambda: tk.StringVar(value=i18n.get_language()))
 
 @dataclass
 class OutputSettings:
@@ -186,7 +190,7 @@ class GhostscriptGUI:
         self.root.title(f"MinimalPDF Compress v{APP_VERSION}")
         self.root.minsize(860, 640)
         self.settings_file = user_config_path("settings.json")
-        self.status = tk.StringVar(value="Ready")
+        self.status = tk.StringVar(value=t("Ready"))
         self.compress_progress_status = tk.StringVar()
         self.progress_var = tk.DoubleVar()
         self.overall_progress_var = tk.DoubleVar()
@@ -410,11 +414,11 @@ class GhostscriptGUI:
         self.main_notebook = main_notebook
 
         compress_tab = ScrolledFrame(main_notebook)
-        main_notebook.add(compress_tab, text="Compress")
+        main_notebook.add(compress_tab, text=t("Compress"))
         self._build_compress_tab(compress_tab.scrollable_frame)
 
         utilities_notebook = ttk.Notebook(main_notebook)
-        main_notebook.add(utilities_notebook, text="Utilities")
+        main_notebook.add(utilities_notebook, text=t("Utilities"))
         utilities_notebook.bind("<<NotebookTabChanged>>", self._on_utility_tab_changed)
         self.utilities_notebook = utilities_notebook
 
@@ -430,12 +434,12 @@ class GhostscriptGUI:
         for name, text, builder in utility_tab_configs:
             frame = ScrolledFrame(utilities_notebook)
             self.tab_frames[name] = frame
-            utilities_notebook.add(frame, text=text)
+            utilities_notebook.add(frame, text=t(text))
             self.tab_statuses[name] = tk.StringVar()
             builder(frame.scrollable_frame)
 
         settings_tab = ScrolledFrame(main_notebook)
-        main_notebook.add(settings_tab, text="Settings")
+        main_notebook.add(settings_tab, text=t("Settings"))
         self.tab_frames["settings"] = settings_tab
         self._build_settings_tab(settings_tab.scrollable_frame)
 
@@ -524,7 +528,7 @@ class GhostscriptGUI:
                 self.update_compress_view()
                 self._update_compress_output_path()
             else:
-                messagebox.showinfo("No Files", "No PDF files were found in that folder.", parent=self.root)
+                messagebox.showinfo(t("No Files"), t("No PDF files were found in that folder."), parent=self.root)
 
     def browse_output(self):
         var = self.compress_settings.output_path
@@ -534,30 +538,30 @@ class GhostscriptGUI:
         cmd = (lambda: self.browse_dir(input_var)) if is_folder else (lambda: self.browse_file(input_var))
         dz = DropZone(parent, height=100, browse_file_cmd=cmd, browse_folder_cmd=lambda: self.browse_dir(input_var), palette=self.palette)
         dz.grid(row=0, column=0, sticky="nsew", pady=(0, 15))
-        Tooltip(dz, TOOLTIP_TEXT.get("drop_zone"))
+        Tooltip(dz, tooltip("drop_zone"))
         return dz
 
     def _create_process_button(self, parent, text, command, row, columnspan=1, tooltip_key=None):
         btn_shadow = ttk.Frame(parent, style="AccentBG.TFrame")
         btn_shadow.grid(row=row, column=0, columnspan=columnspan, sticky="ew", pady=(15, 12), padx=3)
-        btn = ttk.Button(btn_shadow, text=text, command=command, style="Accent.TButton")
+        btn = ttk.Button(btn_shadow, text=t(text), command=command, style="Accent.TButton")
         btn.pack(fill="x", ipady=10, pady=(0,3), padx=(0,3))
-        if tooltip_key: Tooltip(btn, TOOLTIP_TEXT.get(tooltip_key))
+        if tooltip_key: Tooltip(btn, tooltip(tooltip_key))
         return btn
 
     def _create_toggle(self, parent, text, variable, tooltip_key, command=None, layout='pack', **layout_kwargs):
-        toggle = ModernToggle(parent, text=text, variable=variable, command=command, palette=self.palette)
+        toggle = ModernToggle(parent, text=t(text), variable=variable, command=command, palette=self.palette)
         if layout == 'pack': toggle.pack(**layout_kwargs)
         else: toggle.grid(**layout_kwargs)
-        if tooltip_key: Tooltip(toggle, TOOLTIP_TEXT.get(tooltip_key))
+        if tooltip_key: Tooltip(toggle, tooltip(tooltip_key))
         self.toggles.append(toggle)
         return toggle
 
     def _create_checkbutton(self, parent, text, variable, tooltip_key, command=None, layout='pack', **layout_kwargs):
-        cb = ttk.Checkbutton(parent, text=text, variable=variable, command=command)
+        cb = ttk.Checkbutton(parent, text=t(text), variable=variable, command=command)
         if layout == 'pack': cb.pack(**layout_kwargs)
         else: cb.grid(**layout_kwargs)
-        if tooltip_key: Tooltip(cb, TOOLTIP_TEXT.get(tooltip_key))
+        if tooltip_key: Tooltip(cb, tooltip(tooltip_key))
         return cb
 
     def _build_io_card(self, parent, tab_name, s, is_dir=False, padding=20):
@@ -608,7 +612,7 @@ class GhostscriptGUI:
 
         self.drop_zones['compress'] = DropZone(io_frame, height=150, browse_file_cmd=self.browse_files_compress, browse_folder_cmd=self.browse_folder_compress, palette=self.palette)
         self.drop_zones['compress'].grid(row=0, column=0, sticky="nsew", pady=(0,15))
-        Tooltip(self.drop_zones['compress'], TOOLTIP_TEXT.get("drop_zone_compress"))
+        Tooltip(self.drop_zones['compress'], tooltip("drop_zone_compress"))
 
         self.compress_file_list_frame = ttk.Frame(io_frame, style="Card.TFrame", padding=10)
         self.compress_file_list_frame.grid(row=1, column=0, sticky="nsew", pady=(0,10))
@@ -622,7 +626,7 @@ class GhostscriptGUI:
 
         self.compress_tree = ttk.Treeview(tree_frame, columns=('name', 'pages', 'size'), show='headings', height=5)
         self.compress_tree.grid(row=0, column=0, sticky='nsew')
-        Tooltip(self.compress_tree, TOOLTIP_TEXT.get("compress_tree"))
+        Tooltip(self.compress_tree, tooltip("compress_tree"))
         vsb = ttk.Scrollbar(tree_frame, orient="vertical", command=self.compress_tree.yview)
         vsb.grid(row=0, column=1, sticky='ns')
         self.compress_tree.configure(yscrollcommand=vsb.set)
@@ -636,14 +640,14 @@ class GhostscriptGUI:
 
         btn_frame = ttk.Frame(self.compress_file_list_frame, style="Card.TFrame")
         btn_frame.grid(row=0, column=1, sticky="ns")
-        btn1 = ttk.Button(btn_frame, text="Add Files", style="Outline.TButton", command=lambda: self.browse_files_compress()); btn1.pack(fill="x", pady=2); Tooltip(btn1, TOOLTIP_TEXT.get("compress_add_btn"))
-        btn2 = ttk.Button(btn_frame, text="Remove", style="Outline.TButton", command=self.remove_compress_file); btn2.pack(fill="x", pady=2); Tooltip(btn2, TOOLTIP_TEXT.get("compress_remove_btn"))
-        btn3 = ttk.Button(btn_frame, text="Clear All", style="Outline.TButton", command=self.clear_compress_list); btn3.pack(fill="x", pady=2)
+        btn1 = ttk.Button(btn_frame, text=t("Add Files"), style="Outline.TButton", command=lambda: self.browse_files_compress()); btn1.pack(fill="x", pady=2); Tooltip(btn1, tooltip("compress_add_btn"))
+        btn2 = ttk.Button(btn_frame, text=t("Remove"), style="Outline.TButton", command=self.remove_compress_file); btn2.pack(fill="x", pady=2); Tooltip(btn2, tooltip("compress_remove_btn"))
+        btn3 = ttk.Button(btn_frame, text=t("Clear All"), style="Outline.TButton", command=self.clear_compress_list); btn3.pack(fill="x", pady=2)
 
         output_frame = ttk.Frame(io_frame, style="Card.TFrame")
         output_frame.grid(row=2, column=0, sticky="nsew", pady=(10, 5))
         output_frame.columnconfigure(1, weight=1)
-        ttk.Label(output_frame, text="Output Folder", style="Card.TLabel").grid(row=0, column=0, sticky="e", padx=(0, 10))
+        ttk.Label(output_frame, text=t("Output Folder"), style="Card.TLabel").grid(row=0, column=0, sticky="e", padx=(0, 10))
         out_entry = ttk.Entry(output_frame, textvariable=cs.output_path); out_entry.grid(row=0, column=1, sticky="we"); Tooltip(out_entry, "Destination folder for the processed file(s).")
         browse_btn = ttk.Button(output_frame, text="...", command=self.browse_output, width=4); browse_btn.grid(row=0, column=2, sticky="e", padx=(5,0)); Tooltip(browse_btn, "Browse for output folder.")
 
@@ -663,21 +667,21 @@ class GhostscriptGUI:
         options_frame.grid(row=0, column=1, sticky="nsew")
         options_frame.columnconfigure(0, weight=1)
 
-        ttk.Label(options_frame, text="Mode", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, sticky="w", pady=(0, 15))
+        ttk.Label(options_frame, text=t("Mode"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, sticky="w", pady=(0, 15))
         mode_frame = ttk.Frame(options_frame, style="TFrame")
         mode_frame.grid(row=1, column=0, sticky="ew", pady=5)
 
-        rb_comp = ttk.Radiobutton(mode_frame, text="Compression", variable=cs.compress_mode, value="Compression", style="Segmented.TRadiobutton"); rb_comp.pack(side="left", fill="x", expand=True)
-        Tooltip(rb_comp, TOOLTIP_TEXT.get("compress_mode_compression"))
+        rb_comp = ttk.Radiobutton(mode_frame, text=t("Compression"), variable=cs.compress_mode, value="Compression", style="Segmented.TRadiobutton"); rb_comp.pack(side="left", fill="x", expand=True)
+        Tooltip(rb_comp, tooltip("compress_mode_compression"))
         ttk.Separator(mode_frame, orient='vertical').pack(side="left", fill='y', padx=2)
-        rb_lossless = ttk.Radiobutton(mode_frame, text="Lossless", variable=cs.compress_mode, value="Lossless", style="Segmented.TRadiobutton"); rb_lossless.pack(side="left", fill="x", expand=True)
-        Tooltip(rb_lossless, TOOLTIP_TEXT.get("compress_mode_lossless"))
+        rb_lossless = ttk.Radiobutton(mode_frame, text=t("Lossless"), variable=cs.compress_mode, value="Lossless", style="Segmented.TRadiobutton"); rb_lossless.pack(side="left", fill="x", expand=True)
+        Tooltip(rb_lossless, tooltip("compress_mode_lossless"))
         ttk.Separator(mode_frame, orient='vertical').pack(side="left", fill='y', padx=2)
-        rb_pdfa = ttk.Radiobutton(mode_frame, text="PDF/A", variable=cs.compress_mode, value="PDF/A", style="Segmented.TRadiobutton"); rb_pdfa.pack(side="left", fill="x", expand=True)
-        Tooltip(rb_pdfa, TOOLTIP_TEXT.get("compress_mode_pdfa"))
+        rb_pdfa = ttk.Radiobutton(mode_frame, text=t("PDF/A"), variable=cs.compress_mode, value="PDF/A", style="Segmented.TRadiobutton"); rb_pdfa.pack(side="left", fill="x", expand=True)
+        Tooltip(rb_pdfa, tooltip("compress_mode_pdfa"))
         ttk.Separator(mode_frame, orient='vertical').pack(side="left", fill='y', padx=2)
-        rb_rem_img = ttk.Radiobutton(mode_frame, text="Remove Images", variable=cs.compress_mode, value="Remove Images", style="Segmented.TRadiobutton"); rb_rem_img.pack(side="left", fill="x", expand=True)
-        Tooltip(rb_rem_img, TOOLTIP_TEXT.get("compress_mode_remove_images"))
+        rb_rem_img = ttk.Radiobutton(mode_frame, text=t("Remove Images"), variable=cs.compress_mode, value="Remove Images", style="Segmented.TRadiobutton"); rb_rem_img.pack(side="left", fill="x", expand=True)
+        Tooltip(rb_rem_img, tooltip("compress_mode_remove_images"))
 
         dpi_frame = ttk.Frame(options_frame, style="TFrame")
         dpi_frame.grid(row=2, column=0, sticky="ew", pady=(20, 0))
@@ -685,7 +689,7 @@ class GhostscriptGUI:
 
         dpi_label_frame = ttk.Frame(dpi_frame, style="TFrame")
         dpi_label_frame.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0,5))
-        ttk.Label(dpi_label_frame, text="Image Quality", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(side="left")
+        ttk.Label(dpi_label_frame, text=t("Image Quality"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(side="left")
         self.dpi_label = ttk.Label(dpi_label_frame, text=f"({cs.dpi.get()} DPI)", style="Card.TLabel")
         self.dpi_label.pack(side="left", padx=5)
 
@@ -707,7 +711,7 @@ class GhostscriptGUI:
         self.dpi_entry = ttk.Entry(dpi_frame, textvariable=cs.dpi, width=5, validate='key', validatecommand=self.vcmd_int)
         self.dpi_entry.grid(row=1, column=1, sticky="w")
         self.dpi_entry.bind("<FocusOut>", lambda e: self._clamp_var(cs.dpi, 0, 600, 72))
-        Tooltip(dpi_frame, TOOLTIP_TEXT.get("compress_dpi_slider"))
+        Tooltip(dpi_frame, tooltip("compress_dpi_slider"))
 
         self.pdfa_dpi_slider = CustomSlider(dpi_frame, from_=72, to=600, variable=cs.pdfa_dpi, palette=self.palette)
         self.pdfa_dpi_entry = ttk.Entry(dpi_frame, textvariable=cs.pdfa_dpi, width=5, validate='key', validatecommand=self.vcmd_int)
@@ -724,7 +728,7 @@ class GhostscriptGUI:
 
         self.compress_button = self._create_process_button(control_panel, "PROCESS PDF", self.process_compression, row=1, columnspan=2, tooltip_key="compress_process_btn")
 
-        adv_frame = ttk.LabelFrame(parent, text="Advanced Settings", padding=10)
+        adv_frame = ttk.LabelFrame(parent, text=t("Advanced Settings"), padding=10)
         adv_frame.grid(row=3, column=0, sticky="nsew", pady=5); adv_frame.columnconfigure(1, weight=1)
         f1 = ttk.Frame(adv_frame); f1.grid(row=0, column=0, sticky="nsew");
         f2 = ttk.Frame(adv_frame); f2.grid(row=0, column=1, sticky="nsew", padx=20);
@@ -752,7 +756,7 @@ class GhostscriptGUI:
 
         self.quantize_level_entry = ttk.Entry(quantize_frame, textvariable=cs.quantize_level, width=3, validate='key', validatecommand=self.vcmd_int)
         self.quantize_level_entry.pack(side="left", padx=5)
-        ttk.Label(quantize_frame, text="Levels (2-8)").pack(side="left")
+        ttk.Label(quantize_frame, text=t("Levels (2-8)")).pack(side="left")
         self.quantize_level_entry.bind("<FocusOut>", lambda e: self._clamp_var(cs.quantize_level, 2, 8, 4))
 
         def toggle_quantize_entry_state(*args):
@@ -785,7 +789,7 @@ class GhostscriptGUI:
         main_card.columnconfigure(0, weight=1)
         main_card.rowconfigure(1, weight=1)
 
-        ttk.Label(main_card, text="Merge Files", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 15))
+        ttk.Label(main_card, text=t("Merge Files"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 15))
 
         tree_frame = ttk.Frame(main_card)
         tree_frame.grid(row=1, column=0, sticky="nsew", padx=(0, 10))
@@ -794,18 +798,18 @@ class GhostscriptGUI:
 
         self.merge_tree = ttk.Treeview(tree_frame, columns=('name', 'pages', 'size'), show='headings')
         self.merge_tree.grid(row=0, column=0, sticky='nsew')
-        Tooltip(self.merge_tree, TOOLTIP_TEXT.get("merge_tree"))
+        Tooltip(self.merge_tree, tooltip("merge_tree"))
         vsb = ttk.Scrollbar(tree_frame, orient="vertical", command=self.merge_tree.yview)
         vsb.grid(row=0, column=1, sticky='ns')
         self.merge_tree.configure(yscrollcommand=vsb.set)
 
         btn_frame = ttk.Frame(main_card, style="Card.TFrame")
         btn_frame.grid(row=1, column=1, sticky="ns")
-        btn1 = ttk.Button(btn_frame, text="Add Files", style="Outline.TButton", command=lambda: self.browse_files(s.files)); btn1.pack(fill="x", pady=2); Tooltip(btn1, TOOLTIP_TEXT.get("merge_add_btn"))
-        btn2 = ttk.Button(btn_frame, text="Remove", style="Outline.TButton", command=self.remove_merge_file); btn2.pack(fill="x", pady=2); Tooltip(btn2, TOOLTIP_TEXT.get("merge_remove_btn"))
-        btn5 = ttk.Button(btn_frame, text="Clear All", style="Outline.TButton", command=self.clear_merge_list); btn5.pack(fill="x", pady=2)
-        btn3 = ttk.Button(btn_frame, text="Move Up", style="Outline.TButton", command=self.move_merge_up); btn3.pack(fill="x", pady=(10, 2)); Tooltip(btn3, TOOLTIP_TEXT.get("merge_move_up_btn"))
-        btn4 = ttk.Button(btn_frame, text="Move Down", style="Outline.TButton", command=self.move_merge_down); btn4.pack(fill="x", pady=2); Tooltip(btn4, TOOLTIP_TEXT.get("merge_move_down_btn"))
+        btn1 = ttk.Button(btn_frame, text=t("Add Files"), style="Outline.TButton", command=lambda: self.browse_files(s.files)); btn1.pack(fill="x", pady=2); Tooltip(btn1, tooltip("merge_add_btn"))
+        btn2 = ttk.Button(btn_frame, text=t("Remove"), style="Outline.TButton", command=self.remove_merge_file); btn2.pack(fill="x", pady=2); Tooltip(btn2, tooltip("merge_remove_btn"))
+        btn5 = ttk.Button(btn_frame, text=t("Clear All"), style="Outline.TButton", command=self.clear_merge_list); btn5.pack(fill="x", pady=2)
+        btn3 = ttk.Button(btn_frame, text=t("Move Up"), style="Outline.TButton", command=self.move_merge_up); btn3.pack(fill="x", pady=(10, 2)); Tooltip(btn3, tooltip("merge_move_up_btn"))
+        btn4 = ttk.Button(btn_frame, text=t("Move Down"), style="Outline.TButton", command=self.move_merge_down); btn4.pack(fill="x", pady=2); Tooltip(btn4, tooltip("merge_move_down_btn"))
 
         self.merge_tree.heading('name', text='File Name')
         self.merge_tree.heading('pages', text='Pages')
@@ -827,21 +831,21 @@ class GhostscriptGUI:
 
         options_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         options_card.grid(row=1, column=0, sticky="ew", pady=10)
-        ttk.Label(options_card, text="Split Mode", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
+        ttk.Label(options_card, text=t("Split Mode"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
 
         mode_frame = ttk.Frame(options_card, style="Card.TFrame")
         mode_frame.pack(fill="x")
-        rb1 = ttk.Radiobutton(mode_frame, text="Split to Single Pages", variable=s.mode, value=SPLIT_SINGLE, style="Card.TRadiobutton"); rb1.pack(fill="x"); Tooltip(rb1, TOOLTIP_TEXT.get("split_mode_single"))
+        rb1 = ttk.Radiobutton(mode_frame, text=t("Split to Single Pages"), variable=s.mode, value=SPLIT_SINGLE, style="Card.TRadiobutton"); rb1.pack(fill="x"); Tooltip(rb1, tooltip("split_mode_single"))
 
         n_frame = ttk.Frame(options_card, style="Card.TFrame"); n_frame.pack(fill="x")
-        rb2 = ttk.Radiobutton(n_frame, text="Split Every N Pages. N =", variable=s.mode, value=SPLIT_EVERY_N, style="Card.TRadiobutton"); rb2.pack(side="left")
+        rb2 = ttk.Radiobutton(n_frame, text=t("Split Every N Pages. N ="), variable=s.mode, value=SPLIT_EVERY_N, style="Card.TRadiobutton"); rb2.pack(side="left")
         self.split_value_entry = ttk.Entry(n_frame, textvariable=s.value, width=5); self.split_value_entry.pack(side="left", ipady=1)
-        Tooltip(n_frame, TOOLTIP_TEXT.get("split_mode_every_n"))
+        Tooltip(n_frame, tooltip("split_mode_every_n"))
 
         custom_frame = ttk.Frame(options_card, style="Card.TFrame"); custom_frame.pack(fill="x")
-        rb3 = ttk.Radiobutton(custom_frame, text="Custom Range(s):", variable=s.mode, value=SPLIT_CUSTOM, style="Card.TRadiobutton"); rb3.pack(side="left", fill="x")
+        rb3 = ttk.Radiobutton(custom_frame, text=t("Custom Range(s):"), variable=s.mode, value=SPLIT_CUSTOM, style="Card.TRadiobutton"); rb3.pack(side="left", fill="x")
         self.split_custom_entry = ttk.Entry(custom_frame, textvariable=s.value); self.split_custom_entry.pack(side="left", expand=True, fill="x", ipady=1, padx=5)
-        Tooltip(custom_frame, TOOLTIP_TEXT.get("split_mode_custom"))
+        Tooltip(custom_frame, tooltip("split_mode_custom"))
 
         self.split_button = self._build_footer(parent, 'split', "SPLIT PDF", self.process_split, row=2)
         self._update_split_validation()
@@ -864,21 +868,21 @@ class GhostscriptGUI:
         s = self.rotate_settings
 
         main_card, left_panel, self.rotate_preview_canvas = self._build_preview_layout(parent, 'rotate', s)
-        Tooltip(self.rotate_preview_canvas, TOOLTIP_TEXT.get("rotate_preview"))
+        Tooltip(self.rotate_preview_canvas, tooltip("rotate_preview"))
 
         options_card = ttk.Frame(left_panel, style="Card.TFrame", padding=(0, 20))
         options_card.grid(row=2, column=0, sticky="ew", pady=(20,0))
         options_card.columnconfigure(0, weight=1)
-        ttk.Label(options_card, text="Rotation Angle", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
+        ttk.Label(options_card, text=t("Rotation Angle"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
 
         btn_frame = ttk.Frame(options_card, style="Card.TFrame")
         btn_frame.pack(fill="both", expand=True)
         btn_frame.columnconfigure(0, weight=1); btn_frame.columnconfigure(1, weight=1); btn_frame.columnconfigure(2, weight=1)
-        Tooltip(btn_frame, TOOLTIP_TEXT.get("rotate_angle_btns"))
+        Tooltip(btn_frame, tooltip("rotate_angle_btns"))
 
         angles = list(ROTATION_MAP.keys())[1:]
         for i, angle_text in enumerate(angles):
-            btn = ttk.Radiobutton(btn_frame, text=angle_text, variable=s.angle, value=angle_text, style="Card.TRadiobutton")
+            btn = ttk.Radiobutton(btn_frame, text=t(angle_text), variable=s.angle, value=angle_text, style="Card.TRadiobutton")
             btn.grid(row=0, column=i, sticky="ew", padx=5)
 
 
@@ -889,16 +893,16 @@ class GhostscriptGUI:
         s = self.delete_settings
 
         main_card, left_panel, self.delete_preview_canvas = self._build_preview_layout(parent, 'delete', s)
-        Tooltip(self.delete_preview_canvas, TOOLTIP_TEXT.get("delete_preview"))
+        Tooltip(self.delete_preview_canvas, tooltip("delete_preview"))
 
         options_card = ttk.Frame(left_panel, style="Card.TFrame", padding=(0, 20))
         options_card.grid(row=2, column=0, sticky="ew", pady=(20,0))
         options_card.columnconfigure(0, weight=1)
-        ttk.Label(options_card, text="Pages to Delete", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, sticky="w", pady=(0,5))
-        ttk.Label(options_card, text="e.g., 1, 3-5, 8-end", style="Card.TLabel").grid(row=1, column=0, sticky="w", pady=(0, 15))
+        ttk.Label(options_card, text=t("Pages to Delete"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, sticky="w", pady=(0,5))
+        ttk.Label(options_card, text=t("e.g., 1, 3-5, 8-end"), style="Card.TLabel").grid(row=1, column=0, sticky="w", pady=(0, 15))
 
         entry = ttk.Entry(options_card, textvariable=s.page_range, validate='key', validatecommand=self.vcmd_pagerange, font=(styles.FONT_FAMILY, 12)); entry.grid(row=2, column=0, sticky="ew")
-        Tooltip(entry, TOOLTIP_TEXT.get("delete_pages_entry"))
+        Tooltip(entry, tooltip("delete_pages_entry"))
 
 
         self.delete_button = self._build_footer(parent, 'delete', "DELETE PAGES", self.process_delete_pages, row=1)
@@ -923,21 +927,21 @@ class GhostscriptGUI:
         self.drop_zones['password'] = self._create_drop_zone(io_frame, s.input_path)
         FileSelector(io_frame, s.input_path, s.output_path, lambda: self.browse_save_file(s.output_path))
 
-        encrypt_frame = ttk.LabelFrame(parent, text="Encrypt PDF", padding=15)
+        encrypt_frame = ttk.LabelFrame(parent, text=t("Encrypt PDF"), padding=15)
         encrypt_frame.grid(row=1, column=0, sticky="ew", pady=(10, 5))
         encrypt_frame.columnconfigure(1, weight=1)
 
-        ttk.Label(encrypt_frame, text="User Password:", style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
+        ttk.Label(encrypt_frame, text=t("User Password:"), style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
         self.pass_encrypt_user_entry = ttk.Entry(encrypt_frame, textvariable=s.user_password, show="*")
         self.pass_encrypt_user_entry.grid(row=0, column=1, sticky="ew", pady=4)
-        Tooltip(self.pass_encrypt_user_entry, TOOLTIP_TEXT.get("password_user_entry"))
+        Tooltip(self.pass_encrypt_user_entry, tooltip("password_user_entry"))
 
-        ttk.Label(encrypt_frame, text="Owner Password:", style="Card.TLabel").grid(row=1, column=0, sticky="w", padx=(0, 10), pady=4)
+        ttk.Label(encrypt_frame, text=t("Owner Password:"), style="Card.TLabel").grid(row=1, column=0, sticky="w", padx=(0, 10), pady=4)
         self.pass_encrypt_owner_entry = ttk.Entry(encrypt_frame, textvariable=s.owner_password, show="*")
         self.pass_encrypt_owner_entry.grid(row=1, column=1, sticky="ew", pady=4)
-        Tooltip(self.pass_encrypt_owner_entry, TOOLTIP_TEXT.get("password_owner_entry"))
+        Tooltip(self.pass_encrypt_owner_entry, tooltip("password_owner_entry"))
 
-        self.permissions_frame = ttk.LabelFrame(encrypt_frame, text="Permissions (when using User Password)", padding=10)
+        self.permissions_frame = ttk.LabelFrame(encrypt_frame, text=t("Permissions (when using User Password)"), padding=10)
         self.permissions_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(10,0))
         self._create_checkbutton(self.permissions_frame, "Allow Printing", s.allow_printing, "password_allow_printing", anchor="w")
         self._create_checkbutton(self.permissions_frame, "Allow Modification", s.allow_modification, "password_allow_modification", anchor="w")
@@ -946,18 +950,18 @@ class GhostscriptGUI:
 
         self.encrypt_button = self._create_process_button(encrypt_frame, "ENCRYPT PDF", self.process_encrypt, row=3, columnspan=2, tooltip_key="password_encrypt_btn")
 
-        decrypt_frame = ttk.LabelFrame(parent, text="Decrypt PDF", padding=15)
+        decrypt_frame = ttk.LabelFrame(parent, text=t("Decrypt PDF"), padding=15)
         decrypt_frame.grid(row=2, column=0, sticky="ew", pady=5)
         decrypt_frame.columnconfigure(1, weight=1)
 
-        ttk.Label(decrypt_frame, text="Current Password:", style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
+        ttk.Label(decrypt_frame, text=t("Current Password:"), style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10), pady=4)
         self.pass_decrypt_entry = ttk.Entry(decrypt_frame, textvariable=s.decrypt_password, show="*")
         self.pass_decrypt_entry.grid(row=0, column=1, sticky="ew", pady=4)
-        Tooltip(self.pass_decrypt_entry, TOOLTIP_TEXT.get("password_decrypt_entry"))
+        Tooltip(self.pass_decrypt_entry, tooltip("password_decrypt_entry"))
 
         self.decrypt_button = self._create_process_button(decrypt_frame, "DECRYPT PDF", self.process_decrypt, row=1, columnspan=2, tooltip_key="password_decrypt_btn")
 
-        show_pass_cb = ttk.Checkbutton(parent, text="Show Passwords", variable=s.show_passwords, command=self.toggle_password_visibility)
+        show_pass_cb = ttk.Checkbutton(parent, text=t("Show Passwords"), variable=s.show_passwords, command=self.toggle_password_visibility)
         show_pass_cb.grid(row=3, column=0, sticky="w", pady=(5, 10), padx=5)
 
         ttk.Label(parent, textvariable=self.tab_statuses['password'], anchor="center").grid(row=4, column=0, sticky="ew", pady=(10, 0))
@@ -973,18 +977,18 @@ class GhostscriptGUI:
         notebook.bind("<<NotebookTabChanged>>", lambda e, nb=notebook: self._on_stamp_mode_change(nb))
 
         image_tab = ttk.Frame(notebook, padding=15); text_tab = ttk.Frame(notebook, padding=15)
-        notebook.add(image_tab, text="Image"); notebook.add(text_tab, text="Text")
+        notebook.add(image_tab, text=t("Image")); notebook.add(text_tab, text=t("Text"))
 
         image_tab.columnconfigure(1, weight=1)
-        ttk.Label(image_tab, text="Image File:").grid(row=0, column=0, sticky="w", padx=(0,10), pady=4)
+        ttk.Label(image_tab, text=t("Image File:")).grid(row=0, column=0, sticky="w", padx=(0,10), pady=4)
         ttk.Entry(image_tab, textvariable=s.image_path).grid(row=0, column=1, sticky="ew", pady=4)
-        btn_img_browse = ttk.Button(image_tab, text="Browse", command=lambda: self.browse_image(s.image_path)); btn_img_browse.grid(row=0, column=2, sticky="e", padx=(10,0), pady=4)
-        Tooltip(btn_img_browse, TOOLTIP_TEXT.get("stamp_image_browse"))
+        btn_img_browse = ttk.Button(image_tab, text=t("Browse"), command=lambda: self.browse_image(s.image_path)); btn_img_browse.grid(row=0, column=2, sticky="e", padx=(10,0), pady=4)
+        Tooltip(btn_img_browse, tooltip("stamp_image_browse"))
 
         size_frame = ttk.Frame(image_tab)
         size_frame.grid(row=1, column=0, columnspan=3, sticky="ew", pady=4)
         size_frame.columnconfigure(1, weight=1)
-        ttk.Label(size_frame, text="Scale:").grid(row=0, column=0, sticky="w", padx=(0,10))
+        ttk.Label(size_frame, text=t("Scale:")).grid(row=0, column=0, sticky="w", padx=(0,10))
         scale_slider = ttk.Scale(size_frame, from_=10, to=200, orient="horizontal", variable=s.image_scale, style="Horizontal.TScale")
         scale_slider.grid(row=0, column=1, sticky="ew")
         scale_label = ttk.Label(size_frame, text="100%")
@@ -993,40 +997,40 @@ class GhostscriptGUI:
             scale_label.config(text=f"{s.image_scale.get():.0f}%")
         s.image_scale.trace_add("write", update_scale_label)
         update_scale_label()
-        Tooltip(size_frame, TOOLTIP_TEXT.get("stamp_image_scale"))
+        Tooltip(size_frame, tooltip("stamp_image_scale"))
 
         text_tab.columnconfigure(1, weight=1)
-        ttk.Label(text_tab, text="Text:").grid(row=0, column=0, sticky="nw", pady=4, padx=(0,10))
+        ttk.Label(text_tab, text=t("Text:")).grid(row=0, column=0, sticky="nw", pady=4, padx=(0,10))
         text_entry = tk.Text(text_tab, height=4, width=30, wrap="word", bg=self.palette.get("WIDGET_BG"), fg=self.palette.get("TEXT"),
                              relief='solid', bd=1, highlightbackground=self.palette.get("BORDER"),
                              highlightcolor=self.palette.get("ACCENT"), insertbackground=self.palette.get("TEXT"),
                              font=(styles.FONT_FAMILY, 10))
         text_entry.grid(row=0, column=1, columnspan=2, sticky="ew", pady=4)
-        Tooltip(text_entry, TOOLTIP_TEXT.get("stamp_text_entry"))
+        Tooltip(text_entry, tooltip("stamp_text_entry"))
         if s.text.get(): text_entry.insert("1.0", s.text.get())
         text_entry.bind("<<Modified>>", lambda e: self._on_text_modified(e, text_entry))
 
         bates_frame = ttk.Frame(text_tab)
         bates_frame.grid(row=1, column=1, columnspan=2, sticky="w")
-        cb_bates = ttk.Checkbutton(bates_frame, text="Enable Bates Numbering (%Bates)", variable=s.bates_enabled); cb_bates.pack(side="left"); Tooltip(cb_bates, TOOLTIP_TEXT.get("stamp_bates_check"))
-        ttk.Label(bates_frame, text="Start at:").pack(side="left", padx=(10, 5))
-        entry_bates = ttk.Entry(bates_frame, textvariable=s.bates_start, width=8); entry_bates.pack(side="left"); Tooltip(entry_bates, TOOLTIP_TEXT.get("stamp_bates_start"))
+        cb_bates = ttk.Checkbutton(bates_frame, text=t("Enable Bates Numbering (%Bates)"), variable=s.bates_enabled); cb_bates.pack(side="left"); Tooltip(cb_bates, tooltip("stamp_bates_check"))
+        ttk.Label(bates_frame, text=t("Start at:")).pack(side="left", padx=(10, 5))
+        entry_bates = ttk.Entry(bates_frame, textvariable=s.bates_start, width=8); entry_bates.pack(side="left"); Tooltip(entry_bates, tooltip("stamp_bates_start"))
 
-        ttk.Label(text_tab, text="Font:").grid(row=2, column=0, sticky="w", pady=4, padx=(0,10))
-        font_combo = ttk.Combobox(text_tab, textvariable=s.font, values=PDF_FONTS, state="readonly"); font_combo.grid(row=2, column=1, sticky="ew", pady=4); Tooltip(font_combo, TOOLTIP_TEXT.get("stamp_font_combo"))
-        ttk.Label(text_tab, text="Size:").grid(row=3, column=0, sticky="w", pady=4, padx=(0,10))
-        font_size_entry = ttk.Entry(text_tab, textvariable=s.font_size, width=5); font_size_entry.grid(row=3, column=1, sticky="w", pady=4); Tooltip(font_size_entry, TOOLTIP_TEXT.get("stamp_font_size"))
-        btn_color = ttk.Button(text_tab, text="Pick Color", command=self.pick_stamp_color); btn_color.grid(row=3, column=2, sticky="e", padx=(10,0), pady=4); Tooltip(btn_color, TOOLTIP_TEXT.get("stamp_font_color"))
+        ttk.Label(text_tab, text=t("Font:")).grid(row=2, column=0, sticky="w", pady=4, padx=(0,10))
+        font_combo = ttk.Combobox(text_tab, textvariable=s.font, values=PDF_FONTS, state="readonly"); font_combo.grid(row=2, column=1, sticky="ew", pady=4); Tooltip(font_combo, tooltip("stamp_font_combo"))
+        ttk.Label(text_tab, text=t("Size:")).grid(row=3, column=0, sticky="w", pady=4, padx=(0,10))
+        font_size_entry = ttk.Entry(text_tab, textvariable=s.font_size, width=5); font_size_entry.grid(row=3, column=1, sticky="w", pady=4); Tooltip(font_size_entry, tooltip("stamp_font_size"))
+        btn_color = ttk.Button(text_tab, text=t("Pick Color"), command=self.pick_stamp_color); btn_color.grid(row=3, column=2, sticky="e", padx=(10,0), pady=4); Tooltip(btn_color, tooltip("stamp_font_color"))
 
         options_card = ttk.Frame(left_panel, style="Card.TFrame")
         options_card.grid(row=3, column=0, sticky="ew", pady=(20,0))
         options_card.columnconfigure(1, weight=1)
-        ttk.Label(options_card, text="Position:").grid(row=0, column=0, sticky="nw", padx=(0,10), pady=5)
+        ttk.Label(options_card, text=t("Position:")).grid(row=0, column=0, sticky="nw", padx=(0,10), pady=5)
         pos_selector = PositionSelector(options_card, variable=s.pos, positions=STAMP_POSITIONS)
-        pos_selector.grid(row=0, column=1, sticky="w", pady=5); Tooltip(pos_selector, TOOLTIP_TEXT.get("stamp_position"))
+        pos_selector.grid(row=0, column=1, sticky="w", pady=5); Tooltip(pos_selector, tooltip("stamp_position"))
 
-        ttk.Label(options_card, text="Opacity:").grid(row=1, column=0, sticky="w", padx=(0,10), pady=5)
-        opacity_slider = ttk.Scale(options_card, from_=0.1, to=1.0, orient="horizontal", variable=s.opacity, style="Horizontal.TScale"); opacity_slider.grid(row=1, column=1, sticky="ew", pady=5); Tooltip(opacity_slider, TOOLTIP_TEXT.get("stamp_opacity"))
+        ttk.Label(options_card, text=t("Opacity:")).grid(row=1, column=0, sticky="w", padx=(0,10), pady=5)
+        opacity_slider = ttk.Scale(options_card, from_=0.1, to=1.0, orient="horizontal", variable=s.opacity, style="Horizontal.TScale"); opacity_slider.grid(row=1, column=1, sticky="ew", pady=5); Tooltip(opacity_slider, tooltip("stamp_opacity"))
 
         self._create_toggle(options_card, "Stamp on Top", s.on_top, "stamp_on_top", layout='grid', row=2, column=0, columnspan=2, sticky="w", pady=10)
 
@@ -1058,7 +1062,7 @@ class GhostscriptGUI:
         options_card.grid(row=2, column=0, sticky="ew", pady=(20,0))
         options_card.columnconfigure(1, weight=1)
 
-        ttk.Label(options_card, text="Header/Footer Options", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 15))
+        ttk.Label(options_card, text=t("Header/Footer Options"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 15))
 
         mode_frame = ttk.Frame(options_card, style="Card.TFrame")
         mode_frame.grid(row=1, column=0, columnspan=3, sticky="ew", pady=5)
@@ -1072,34 +1076,34 @@ class GhostscriptGUI:
 
         s.mode.trace_add("write", toggle_custom_entry_state)
 
-        rb_pn1 = ttk.Radiobutton(mode_frame, text="Page Number (e.g., 1)", variable=s.mode, value=MODES[0], style="Card.TRadiobutton"); rb_pn1.pack(anchor="w"); Tooltip(rb_pn1, TOOLTIP_TEXT.get("hf_mode_page_num"))
-        rb_pn2 = ttk.Radiobutton(mode_frame, text="Page X of Y (e.g., 1 of 10)", variable=s.mode, value=MODES[1], style="Card.TRadiobutton"); rb_pn2.pack(anchor="w"); Tooltip(rb_pn2, TOOLTIP_TEXT.get("hf_mode_page_x_of_y"))
+        rb_pn1 = ttk.Radiobutton(mode_frame, text=t("Page Number (e.g., 1)"), variable=s.mode, value=MODES[0], style="Card.TRadiobutton"); rb_pn1.pack(anchor="w"); Tooltip(rb_pn1, tooltip("hf_mode_page_num"))
+        rb_pn2 = ttk.Radiobutton(mode_frame, text=t("Page X of Y (e.g., 1 of 10)"), variable=s.mode, value=MODES[1], style="Card.TRadiobutton"); rb_pn2.pack(anchor="w"); Tooltip(rb_pn2, tooltip("hf_mode_page_x_of_y"))
 
         custom_frame = ttk.Frame(mode_frame, style="Card.TFrame")
         custom_frame.pack(fill="x", expand=True)
-        rb_pn3 = ttk.Radiobutton(custom_frame, text="Custom:", variable=s.mode, value=MODES[2], style="Card.TRadiobutton"); rb_pn3.pack(side="left", anchor="n");
+        rb_pn3 = ttk.Radiobutton(custom_frame, text=t("Custom:"), variable=s.mode, value=MODES[2], style="Card.TRadiobutton"); rb_pn3.pack(side="left", anchor="n");
         self.pn_custom_entry = ttk.Entry(custom_frame, textvariable=s.custom_text)
         self.pn_custom_entry.pack(side="left", fill="x", expand=True)
-        Tooltip(custom_frame, TOOLTIP_TEXT.get("hf_mode_custom"))
+        Tooltip(custom_frame, tooltip("hf_mode_custom"))
 
-        ttk.Label(options_card, text="Position:", style="Card.TLabel").grid(row=2, column=0, sticky="nw", pady=5, padx=(0,10))
+        ttk.Label(options_card, text=t("Position:"), style="Card.TLabel").grid(row=2, column=0, sticky="nw", pady=5, padx=(0,10))
         pos_selector = PositionSelector(options_card, variable=s.pos, positions=PAGE_NUMBER_POSITIONS)
-        pos_selector.grid(row=2, column=1, sticky="w", pady=5); Tooltip(pos_selector, TOOLTIP_TEXT.get("hf_position"))
+        pos_selector.grid(row=2, column=1, sticky="w", pady=5); Tooltip(pos_selector, tooltip("hf_position"))
 
-        ttk.Label(options_card, text="Font:", style="Card.TLabel").grid(row=3, column=0, sticky="w", pady=5, padx=(0,10))
+        ttk.Label(options_card, text=t("Font:"), style="Card.TLabel").grid(row=3, column=0, sticky="w", pady=5, padx=(0,10))
         font_frame = ttk.Frame(options_card, style="Card.TFrame")
         font_frame.grid(row=3, column=1, sticky="ew", pady=5)
         font_frame.columnconfigure(0, weight=1)
-        combo_font = ttk.Combobox(font_frame, textvariable=s.font, values=PDF_FONTS, state="readonly"); combo_font.grid(row=0, column=0, sticky="ew"); Tooltip(combo_font, TOOLTIP_TEXT.get("hf_font_combo"))
+        combo_font = ttk.Combobox(font_frame, textvariable=s.font, values=PDF_FONTS, state="readonly"); combo_font.grid(row=0, column=0, sticky="ew"); Tooltip(combo_font, tooltip("hf_font_combo"))
 
-        ttk.Label(font_frame, text="Size:", style="Card.TLabel").grid(row=0, column=1, sticky="w", padx=(10,5))
-        entry_size = ttk.Entry(font_frame, textvariable=s.font_size, width=5, validate='key', validatecommand=self.vcmd_int); entry_size.grid(row=0, column=2, sticky="w"); Tooltip(entry_size, TOOLTIP_TEXT.get("hf_font_size"))
-        btn_color = ttk.Button(font_frame, text="Color", command=self.pick_page_number_color); btn_color.grid(row=0, column=3, sticky="e", padx=(10,0)); Tooltip(btn_color, TOOLTIP_TEXT.get("hf_font_color"))
+        ttk.Label(font_frame, text=t("Size:"), style="Card.TLabel").grid(row=0, column=1, sticky="w", padx=(10,5))
+        entry_size = ttk.Entry(font_frame, textvariable=s.font_size, width=5, validate='key', validatecommand=self.vcmd_int); entry_size.grid(row=0, column=2, sticky="w"); Tooltip(entry_size, tooltip("hf_font_size"))
+        btn_color = ttk.Button(font_frame, text=t("Color"), command=self.pick_page_number_color); btn_color.grid(row=0, column=3, sticky="e", padx=(10,0)); Tooltip(btn_color, tooltip("hf_font_color"))
 
-        ttk.Label(options_card, text="Page Range:", style="Card.TLabel").grid(row=4, column=0, sticky="w", pady=5, padx=(0,10))
+        ttk.Label(options_card, text=t("Page Range:"), style="Card.TLabel").grid(row=4, column=0, sticky="w", pady=5, padx=(0,10))
         page_range_entry = ttk.Entry(options_card, textvariable=s.page_range, validate='key', validatecommand=self.vcmd_pagerange)
         page_range_entry.grid(row=4, column=1, sticky="ew", pady=5)
-        Tooltip(page_range_entry, TOOLTIP_TEXT.get("hf_page_range"))
+        Tooltip(page_range_entry, tooltip("hf_page_range"))
 
         toggle_custom_entry_state()
         
@@ -1116,19 +1120,19 @@ class GhostscriptGUI:
         options_card.grid(row=1, column=0, sticky="ew", pady=10)
         options_card.columnconfigure(1, weight=1)
 
-        ttk.Label(options_card, text="Table of Contents", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 15))
+        ttk.Label(options_card, text=t("Table of Contents"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 15))
 
-        ttk.Label(options_card, text="Title:", style="Card.TLabel").grid(row=1, column=0, sticky="w", pady=5, padx=(0,10))
+        ttk.Label(options_card, text=t("Title:"), style="Card.TLabel").grid(row=1, column=0, sticky="w", pady=5, padx=(0,10))
         entry_title = ttk.Entry(options_card, textvariable=s.title); entry_title.grid(row=1, column=1, sticky="ew", pady=5)
-        Tooltip(entry_title, TOOLTIP_TEXT.get("toc_title"))
+        Tooltip(entry_title, tooltip("toc_title"))
         
-        ttk.Label(options_card, text="Font:", style="Card.TLabel").grid(row=2, column=0, sticky="w", pady=5, padx=(0,10))
+        ttk.Label(options_card, text=t("Font:"), style="Card.TLabel").grid(row=2, column=0, sticky="w", pady=5, padx=(0,10))
         combo_font = ttk.Combobox(options_card, textvariable=s.font, values=PDF_FONTS, state="readonly")
-        combo_font.grid(row=2, column=1, sticky="ew", pady=5); Tooltip(combo_font, TOOLTIP_TEXT.get("toc_font"))
+        combo_font.grid(row=2, column=1, sticky="ew", pady=5); Tooltip(combo_font, tooltip("toc_font"))
         
-        ttk.Label(options_card, text="Font Size:", style="Card.TLabel").grid(row=3, column=0, sticky="w", pady=5, padx=(0,10))
+        ttk.Label(options_card, text=t("Font Size:"), style="Card.TLabel").grid(row=3, column=0, sticky="w", pady=5, padx=(0,10))
         entry_size = ttk.Entry(options_card, textvariable=s.font_size, width=8, validate='key', validatecommand=self.vcmd_int)
-        entry_size.grid(row=3, column=1, sticky="w", pady=5); Tooltip(entry_size, TOOLTIP_TEXT.get("toc_font_size"))
+        entry_size.grid(row=3, column=1, sticky="w", pady=5); Tooltip(entry_size, tooltip("toc_font_size"))
 
         toggle_frame = ttk.Frame(options_card, style="Card.TFrame")
         toggle_frame.grid(row=4, column=0, columnspan=2, sticky="ew", pady=(15,0))
@@ -1145,10 +1149,10 @@ class GhostscriptGUI:
         io_frame = ttk.Frame(parent, style="Card.TFrame", padding=20)
         io_frame.grid(row=0, column=0, sticky="ew")
         io_frame.columnconfigure(1, weight=1)
-        ttk.Label(io_frame, text="Input", style="Card.TLabel").grid(row=0, column=0, sticky="e", padx=(0, 10), pady=(0,10))
+        ttk.Label(io_frame, text=t("Input"), style="Card.TLabel").grid(row=0, column=0, sticky="e", padx=(0, 10), pady=(0,10))
         in_entry = ttk.Entry(io_frame, textvariable=s.input_path); in_entry.grid(row=0, column=1, sticky="we", pady=(0,10))
-        btn_browse = ttk.Button(io_frame, text="Browse", command=lambda: self.browse_file(s.input_path), width=8); btn_browse.grid(row=0, column=2, padx=(5,0), pady=(0,10))
-        Tooltip(btn_browse, TOOLTIP_TEXT.get("meta_browse_btn"))
+        btn_browse = ttk.Button(io_frame, text=t("Browse"), command=lambda: self.browse_file(s.input_path), width=8); btn_browse.grid(row=0, column=2, padx=(5,0), pady=(0,10))
+        Tooltip(btn_browse, tooltip("meta_browse_btn"))
 
         fields_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         fields_card.grid(row=1, column=0, sticky="ew", pady=10)
@@ -1158,7 +1162,7 @@ class GhostscriptGUI:
         for i, (label, var, key) in enumerate(fields):
             ttk.Label(fields_card, text=label, style="Card.TLabel").grid(row=i, column=0, sticky="w", padx=(0,10), pady=4)
             entry = ttk.Entry(fields_card, textvariable=var); entry.grid(row=i, column=1, sticky="ew", pady=4)
-            Tooltip(entry, TOOLTIP_TEXT.get(key))
+            Tooltip(entry, tooltip(key))
 
         self.meta_button = self._build_footer(parent, 'metadata', "SAVE METADATA (OVERWRITE)", self.save_metadata, row=2)
 
@@ -1171,17 +1175,17 @@ class GhostscriptGUI:
         options_card.grid(row=1, column=0, sticky="ew", pady=10)
         options_card.columnconfigure(1, weight=1)
 
-        ttk.Label(options_card, text="Output Format", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 15))
+        ttk.Label(options_card, text=t("Output Format"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 15))
         format_frame = ttk.Frame(options_card, style="Card.TFrame")
         format_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(0, 15))
-        Tooltip(format_frame, TOOLTIP_TEXT.get("convert_format_btns"))
+        Tooltip(format_frame, tooltip("convert_format_btns"))
         for fmt in IMAGE_FORMATS: ttk.Radiobutton(format_frame, text=fmt.upper(), variable=s.format, value=fmt, style="Card.TRadiobutton").pack(side="left", expand=True, fill="x")
 
-        ttk.Label(options_card, text="Resolution (DPI)", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=2, column=0, columnspan=2, sticky="w", pady=(0, 5))
+        ttk.Label(options_card, text=t("Resolution (DPI)"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=2, column=0, columnspan=2, sticky="w", pady=(0, 5))
         dpi_frame = ttk.Frame(options_card, style="Card.TFrame")
         dpi_frame.grid(row=3, column=0, columnspan=2, sticky="ew")
         dpi_frame.columnconfigure(0, weight=1)
-        Tooltip(dpi_frame, TOOLTIP_TEXT.get("convert_dpi_slider"))
+        Tooltip(dpi_frame, tooltip("convert_dpi_slider"))
         ttk.Scale(dpi_frame, from_=72, to=600, orient="horizontal", variable=s.dpi_slider, style="Horizontal.TScale").grid(row=0, column=0, sticky="ew", padx=(0, 15))
         ttk.Entry(dpi_frame, textvariable=s.dpi, width=5, validate='key', validatecommand=self.vcmd_int).grid(row=0, column=1, sticky="e")
 
@@ -1194,7 +1198,7 @@ class GhostscriptGUI:
 
         info_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         info_card.grid(row=1, column=0, sticky="ew", pady=10)
-        ttk.Label(info_card, text="This tool attempts to repair corrupted or damaged PDF files by rebuilding them. Results may vary.", style="Card.TLabel", wraplength=1500, justify="left").pack(fill="x")
+        ttk.Label(info_card, text=t("This tool attempts to repair corrupted or damaged PDF files by rebuilding them. Results may vary."), style="Card.TLabel", wraplength=1500, justify="left").pack(fill="x")
 
         self.repair_button = self._build_footer(parent, 'repair', "ATTEMPT REPAIR", self.process_repair, row=2)
 
@@ -1205,29 +1209,43 @@ class GhostscriptGUI:
 
         appearance_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         appearance_card.grid(row=0, column=0, sticky="ew", pady=(0, 10))
-        ttk.Label(appearance_card, text="Appearance", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
+        ttk.Label(appearance_card, text=t("Appearance"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
         self._create_toggle(appearance_card, "Dark Mode", s.dark_mode_enabled, "settings_dark_mode", command=self.toggle_theme, anchor="w")
+
+        language_frame = ttk.Frame(appearance_card, style="Card.TFrame")
+        language_frame.pack(anchor="w", fill="x", pady=(12, 0))
+        ttk.Label(language_frame, text=t("Language"), style="Card.TLabel").pack(side="left")
+        # The combobox shows the language names but the setting stores the code,
+        # so settings.json stays readable and independent of the chosen language.
+        codes = list(i18n.LANGUAGES)
+        self._language_display = tk.StringVar(value=i18n.LANGUAGES.get(s.language.get(), ""))
+        language_combo = ttk.Combobox(language_frame, textvariable=self._language_display,
+                                      values=[i18n.LANGUAGES[code] for code in codes],
+                                      state="readonly", width=14)
+        language_combo.pack(side="left", padx=(10, 0))
+        language_combo.bind("<<ComboboxSelected>>", lambda _e: self._on_language_selected(codes))
+        Tooltip(language_combo, tooltip("settings_language"))
 
         logging_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         logging_card.grid(row=1, column=0, sticky="ew", pady=10)
-        ttk.Label(logging_card, text="Logging", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
+        ttk.Label(logging_card, text=t("Logging"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
         self._create_toggle(logging_card, "Enable File Logging (app.log)", s.logging_enabled, "settings_logging", command=self.configure_logging, anchor="w")
 
         output_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         output_card.grid(row=2, column=0, sticky="ew", pady=10)
         output_card.columnconfigure(1, weight=1)
 
-        ttk.Label(output_card, text="Default Output", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 15))
+        ttk.Label(output_card, text=t("Default Output"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=0, column=0, columnspan=3, sticky="w", pady=(0, 15))
         self._create_toggle(output_card, "Use Default Output Folder", os.use_default_folder, "settings_use_default_folder", layout='grid', row=1, column=0, columnspan=3, sticky="w", pady=5)
 
         default_folder_frame = ttk.Frame(output_card, style="Card.TFrame")
         default_folder_frame.grid(row=2, column=0, columnspan=3, sticky="ew", pady=(0, 20), padx=(20,0))
         default_folder_frame.columnconfigure(1, weight=1)
-        Tooltip(default_folder_frame, TOOLTIP_TEXT.get("settings_default_folder_entry"))
-        ttk.Label(default_folder_frame, text="Folder:", style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
+        Tooltip(default_folder_frame, tooltip("settings_default_folder_entry"))
+        ttk.Label(default_folder_frame, text=t("Folder:"), style="Card.TLabel").grid(row=0, column=0, sticky="w", padx=(0, 10))
         self.default_folder_entry = ttk.Entry(default_folder_frame, textvariable=os.default_folder)
         self.default_folder_entry.grid(row=0, column=1, sticky="ew")
-        ttk.Button(default_folder_frame, text="Browse", command=lambda: self.browse_dir(os.default_folder)).grid(row=0, column=2, sticky="e", padx=(10,0))
+        ttk.Button(default_folder_frame, text=t("Browse"), command=lambda: self.browse_dir(os.default_folder)).grid(row=0, column=2, sticky="e", padx=(10,0))
 
         def toggle_default_folder_state(*args):
             state = "normal" if os.use_default_folder.get() else "disabled"
@@ -1236,14 +1254,14 @@ class GhostscriptGUI:
         os.use_default_folder.trace_add("write", toggle_default_folder_state)
         toggle_default_folder_state()
 
-        ttk.Label(output_card, text="Output File Naming", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=3, column=0, columnspan=3, sticky="w", pady=(10, 15))
+        ttk.Label(output_card, text=t("Output File Naming"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").grid(row=3, column=0, columnspan=3, sticky="w", pady=(10, 15))
         pattern_frame = ttk.Frame(output_card, style="Card.TFrame")
         pattern_frame.grid(row=4, column=0, columnspan=3, sticky="ew", padx=(20,0))
 
-        ttk.Label(pattern_frame, text="Prefix:", style="Card.TLabel").grid(row=0, column=0, sticky="w", pady=2)
-        entry_prefix = ttk.Entry(pattern_frame, textvariable=os.prefix, width=15); entry_prefix.grid(row=0, column=1, sticky="ew", pady=2, padx=5); Tooltip(entry_prefix, TOOLTIP_TEXT.get("settings_prefix"))
-        ttk.Label(pattern_frame, text="Suffix:", style="Card.TLabel").grid(row=0, column=3, sticky="w", pady=2, padx=5)
-        entry_suffix = ttk.Entry(pattern_frame, textvariable=os.suffix, width=15); entry_suffix.grid(row=0, column=4, sticky="ew", pady=2, padx=5); Tooltip(entry_suffix, TOOLTIP_TEXT.get("settings_suffix"))
+        ttk.Label(pattern_frame, text=t("Prefix:"), style="Card.TLabel").grid(row=0, column=0, sticky="w", pady=2)
+        entry_prefix = ttk.Entry(pattern_frame, textvariable=os.prefix, width=15); entry_prefix.grid(row=0, column=1, sticky="ew", pady=2, padx=5); Tooltip(entry_prefix, tooltip("settings_prefix"))
+        ttk.Label(pattern_frame, text=t("Suffix:"), style="Card.TLabel").grid(row=0, column=3, sticky="w", pady=2, padx=5)
+        entry_suffix = ttk.Entry(pattern_frame, textvariable=os.suffix, width=15); entry_suffix.grid(row=0, column=4, sticky="ew", pady=2, padx=5); Tooltip(entry_suffix, tooltip("settings_suffix"))
 
         self._create_toggle(pattern_frame, "Add Date (YYYY-MM-DD)", os.add_date, "settings_add_date", layout='grid', row=1, column=0, columnspan=5, sticky="w", pady=5)
         self._create_toggle(pattern_frame, "Add Time (HH-MM-SS)", os.add_time, "settings_add_time", layout='grid', row=2, column=0, columnspan=5, sticky="w", pady=5)
@@ -1272,27 +1290,43 @@ class GhostscriptGUI:
             self.coffee_img_label.grid(row=0, column=0, rowspan=2, padx=(0, 15))
             self.coffee_img_label.bind("<Button-1>", self.open_coffee_link)
             self.coffee_img_label.image = initial_icon
-            Tooltip(self.coffee_img_label, TOOLTIP_TEXT.get("settings_buy_coffee"))
+            Tooltip(self.coffee_img_label, tooltip("settings_buy_coffee"))
 
         except Exception as e:
             logging.warning(f"Could not load coffee icon: {e}")
             self.coffee_img_label = ttk.Label(coffee_card, text="☕", style="Card.TLabel", font=(styles.FONT_FAMILY, 24))
             self.coffee_img_label.grid(row=0, column=0, rowspan=2, padx=(0, 15))
 
-        coffee_label = ttk.Label(coffee_card, text="If you enjoy using my app, please consider supporting its development.", style="Card.TLabel", wraplength=600)
+        coffee_label = ttk.Label(coffee_card, text=t("If you enjoy using my app, please consider supporting its development."), style="Card.TLabel", wraplength=600)
         coffee_label.grid(row=0, column=1, sticky="w")
 
-        link_label = ttk.Label(coffee_card, text="Buy me a coffee", style="Card.TLabel", foreground=self.palette.get("ACCENT"), cursor="hand2")
+        link_label = ttk.Label(coffee_card, text=t("Buy me a coffee"), style="Card.TLabel", foreground=self.palette.get("ACCENT"), cursor="hand2")
         link_label.grid(row=1, column=1, sticky="w")
         link_label.bind("<Button-1>", self.open_coffee_link)
-        Tooltip(link_label, TOOLTIP_TEXT.get("settings_buy_coffee"))
+        Tooltip(link_label, tooltip("settings_buy_coffee"))
 
         updates_card = ttk.Frame(parent, style="Card.TFrame", padding=20)
         updates_card.grid(row=4, column=0, sticky="ew", pady=10)
         updates_card.columnconfigure(0, weight=1)
-        ttk.Label(updates_card, text="Updates", font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
-        btn_updates = ttk.Button(updates_card, text="Check for Updates", command=self.check_for_updates, style="Outline.TButton"); btn_updates.pack(anchor="w")
-        Tooltip(btn_updates, TOOLTIP_TEXT.get("settings_check_updates"))
+        ttk.Label(updates_card, text=t("Updates"), font=(styles.FONT_FAMILY, 14, "bold"), style="Card.TLabel").pack(anchor="w", pady=(0, 15))
+        btn_updates = ttk.Button(updates_card, text=t("Check for Updates"), command=self.check_for_updates, style="Outline.TButton"); btn_updates.pack(anchor="w")
+        Tooltip(btn_updates, tooltip("settings_check_updates"))
+
+    def _on_language_selected(self, codes):
+        """Store the chosen language and tell the user it applies next launch.
+
+        Tkinter gives no practical way to relabel a built interface, and
+        rebuilding it would lose the files queued in the lists, so the change
+        is deliberately deferred rather than applied live.
+        """
+        chosen = next((c for c in codes if i18n.LANGUAGES[c] == self._language_display.get()), None)
+        if not chosen or chosen == self.general_settings.language.get():
+            return
+        self.general_settings.language.set(chosen)
+        self.save_settings()
+        messagebox.showinfo(t("Restart required"),
+                            t("The language will change the next time you open the application."),
+                            parent=self.root)
 
     def open_coffee_link(self, event=None):
         webbrowser.open_new("https://www.buymeacoffee.com/deminimis")
@@ -1462,14 +1496,14 @@ class GhostscriptGUI:
             except ToolNotFound as e:
                 if critical:
                     self.status.set(f"Error: {e}")
-                    messagebox.showerror("Tool Not Found", f"{e}\nThe application may not function correctly.", parent=self.root)
+                    messagebox.showerror(t("Tool Not Found"), f"{e}\nThe application may not function correctly.", parent=self.root)
                 else:
                     logging.warning(f"{name} not found: {e}")
 
 
     def start_task(self, button, target_func, args, status_var):
         if self.active_process_button:
-            messagebox.showwarning("Busy", "A process is already running.", parent=self.root)
+            messagebox.showwarning(t("Busy"), t("A process is already running."), parent=self.root)
             return
         self.active_process_button = button
         button.config(state="disabled")
@@ -1499,7 +1533,7 @@ class GhostscriptGUI:
             self.compression_ratio_var.set(0.0)
 
         if "Error" in message:
-            messagebox.showerror("Error", message, parent=self.root)
+            messagebox.showerror(t("Error"), message, parent=self.root)
 
         self.main_progress_bar.stop()
         self.main_progress_bar['value'] = 0
@@ -1553,7 +1587,7 @@ class GhostscriptGUI:
             canvas.create_image(canvas_width / 2, canvas_height / 2, anchor=tk.CENTER, image=photo_image)
         else:
             if canvas_width > 1 and canvas_height > 1:
-                 canvas.create_text(canvas_width / 2, canvas_height / 2, text="Preview N/A", anchor=tk.CENTER, fill=self.palette.get("DISABLED"))
+                 canvas.create_text(canvas_width / 2, canvas_height / 2, text=t("Preview N/A"), anchor=tk.CENTER, fill=self.palette.get("DISABLED"))
 
     def _debounce_trigger(self, callback, delay=300):
         if self._preview_job is not None:
@@ -1711,26 +1745,26 @@ class GhostscriptGUI:
         s = self.meta_settings
         pdf_path = s.input_path.get()
         if not pdf_path or not Path(pdf_path).exists():
-            messagebox.showerror("Error", "Please select a valid PDF file first.", parent=self.root)
+            messagebox.showerror(t("Error"), t("Please select a valid PDF file first."), parent=self.root)
             return
 
-        if messagebox.askyesno("Confirm Overwrite", "This will modify the metadata of the original file. Are you sure you want to continue?", parent=self.root):
+        if messagebox.askyesno(t("Confirm Overwrite"), t("This will modify the metadata of the original file. Are you sure you want to continue?"), parent=self.root):
             try:
                 metadata_dict = {'title': s.title.get(), 'author': s.author.get(), 'subject': s.subject.get(), 'keywords': s.keywords.get()}
                 backend.run_metadata_task(META_SAVE, pdf_path, self.cpdf_path, metadata_dict)
                 self.tab_statuses['metadata'].set("Metadata saved successfully.")
             except Exception as e:
                 self.tab_statuses['metadata'].set(f"Error saving metadata: {e}")
-                messagebox.showerror("Error", f"Could not save metadata: {e}", parent=self.root)
+                messagebox.showerror(t("Error"), f"Could not save metadata: {e}", parent=self.root)
 
     def process_compression(self):
         s = self.compress_settings
         
         if not self.compress_settings.files:
-             messagebox.showerror("Input Error", "Please add one or more PDF files to the list.", parent=self.root)
+             messagebox.showerror(t("Input Error"), t("Please add one or more PDF files to the list."), parent=self.root)
              return
         if not s.output_path.get():
-             messagebox.showerror("Input Error", "Please specify an output folder.", parent=self.root)
+             messagebox.showerror(t("Input Error"), t("Please specify an output folder."), parent=self.root)
              return
 
         params = {
@@ -1772,7 +1806,7 @@ class GhostscriptGUI:
     def process_merge(self):
         s = self.merge_settings
         if not s.files or not s.output_path.get():
-            messagebox.showerror("Input Error", "Please add files to merge and specify an output path.", parent=self.root)
+            messagebox.showerror(t("Input Error"), t("Please add files to merge and specify an output path."), parent=self.root)
             return
         self.start_task(self.merge_button, backend.run_merge_task, args=(s.files, s.output_path.get(), self.progress_queue), status_var=self.tab_statuses['merge'])
 
@@ -1780,7 +1814,7 @@ class GhostscriptGUI:
         in_val = settings_obj.input_path.get()
         out_val = getattr(settings_obj, out_field).get()
         if not in_val or not out_val:
-            messagebox.showerror("Input Error", "Please select an input file and an output path/directory.", parent=self.root)
+            messagebox.showerror(t("Input Error"), t("Please select an input file and an output path/directory."), parent=self.root)
             return
         self.start_task(button, task_func, args=args_tuple, status_var=self.tab_statuses[status_key])
 
