@@ -170,7 +170,32 @@ def build_ghostscript(source, workdir):
             if result.returncode != 0:
                 tail = log.read_text(encoding="utf-8", errors="ignore").splitlines()[-40:]
                 raise SystemExit("Ghostscript build failed:\n  " + "\n  ".join(tail))
-    return stage
+
+    # Normalise the install tree. Where Ghostscript puts its resources under
+    # --prefix varies between versions and platforms, so rather than guess at a
+    # path, locate the one file gs cannot start without and work back from it.
+    init = next(stage.rglob("Resource/Init/gs_init.ps"), None)
+    if init is None:
+        raise SystemExit(
+            "Ghostscript compiled but Resource/Init/gs_init.ps is not in the install "
+            "tree. Contents of " + str(stage) + ":\n  "
+            + "\n  ".join(sorted(str(p.relative_to(stage)) for p in stage.rglob("*") if p.is_dir())[:40])
+        )
+    resource_root = init.parents[2]
+    binary = next((p for p in stage.rglob("bin/gs") if p.is_file()), None)
+    if binary is None:
+        raise SystemExit("Ghostscript compiled but no bin/gs in " + str(stage))
+    print(f"    resources: {resource_root.relative_to(stage)}")
+
+    normalised = workdir / "normalised"
+    (normalised / "bin").mkdir(parents=True, exist_ok=True)
+    shutil.copy2(binary, normalised / "bin" / "gs")
+    for name in ("Resource", "iccprofiles", "lib"):
+        source_dir = resource_root / name
+        if source_dir.is_dir():
+            shutil.copytree(source_dir, normalised / name, dirs_exist_ok=True)
+            print(f"    bundling {name}/")
+    return normalised
 
 
 BUILDERS = {"ghostscript": build_ghostscript}

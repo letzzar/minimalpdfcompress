@@ -75,16 +75,16 @@
           "executable": true
         },
         {
-          "from": "share/ghostscript/*/Resource",
+          "from": "Resource",
           "to": "Resource"
         },
         {
-          "from": "share/ghostscript/*/iccprofiles",
+          "from": "iccprofiles",
           "to": "iccprofiles",
           "optional": true
         },
         {
-          "from": "share/ghostscript/*/lib",
+          "from": "lib",
           "to": "lib",
           "optional": true
         }
@@ -108,16 +108,16 @@
           "executable": true
         },
         {
-          "from": "share/ghostscript/*/Resource",
+          "from": "Resource",
           "to": "Resource"
         },
         {
-          "from": "share/ghostscript/*/iccprofiles",
+          "from": "iccprofiles",
           "to": "iccprofiles",
           "optional": true
         },
         {
-          "from": "share/ghostscript/*/lib",
+          "from": "lib",
           "to": "lib",
           "optional": true
         }
@@ -141,16 +141,16 @@
           "executable": true
         },
         {
-          "from": "share/ghostscript/*/Resource",
+          "from": "Resource",
           "to": "Resource"
         },
         {
-          "from": "share/ghostscript/*/iccprofiles",
+          "from": "iccprofiles",
           "to": "iccprofiles",
           "optional": true
         },
         {
-          "from": "share/ghostscript/*/lib",
+          "from": "lib",
           "to": "lib",
           "optional": true
         }
@@ -174,16 +174,16 @@
           "executable": true
         },
         {
-          "from": "share/ghostscript/*/Resource",
+          "from": "Resource",
           "to": "Resource"
         },
         {
-          "from": "share/ghostscript/*/iccprofiles",
+          "from": "iccprofiles",
           "to": "iccprofiles",
           "optional": true
         },
         {
-          "from": "share/ghostscript/*/lib",
+          "from": "lib",
           "to": "lib",
           "optional": true
         }
