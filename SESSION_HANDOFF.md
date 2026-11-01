@@ -121,10 +121,13 @@ Nada a medias.
 - Firma de código: sigue sin hacerse. Es lo que de verdad termina con las
   heurísticas de aprendizaje automático y con SmartScreen, que es una capa
   aparte y sólo se gana a base de descargas.
-- El instalador de la 1.11.0 se midió el 2026-11-01: **cero detecciones**
-  (44 motores con veredicto, 23 agotaron el tiempo por el tamaño, 3 fallaron).
-  DeepInstinct, el único que marcaba el instalador de la 1.10.0, está limpio.
-  El `.exe` suelto y los portables de la 1.11.0 no se han medido.
+- Medido el 2026-11-01 en VirusTotal: instalador **0** (de 44 motores que
+  contestaron), zip de Windows **1/68**, `.exe` de dentro **1/71**. El único
+  que objeta en los tres sitios es Microsoft, con Wacatac`!ml`, y sólo por el
+  ejecutable: el instalador lleva los mismos bytes y pasa limpio. DeepInstinct
+  y Zillya, que marcaban los artefactos de la 1.10.0, están limpios ahora.
+  Los portables de macOS y Linux no se han medido; tampoco tendría mucho
+  sentido, los motores de VirusTotal miran sobre todo a Windows.
 - `src/dependencies/pdf.ico` no lo referencia nada; anotado, no borrado.
 
 - **Marco negro del icono: resuelto.** El arte de upstream traía el fondo

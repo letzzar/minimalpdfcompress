@@ -67,11 +67,27 @@ Both artefacts of this fork's build were submitted to VirusTotal on
 | this fork `MinimalPDF_Compress-1.10.0-win64.zip` | `39d8d6bc3d…` | **1 / 68** |
 | this fork, the Inno Setup installer | `c3a4ae59fd…` | **1 / 68** |
 
-The 1.11.0 installer was measured separately on 2026-11-01,
-`61a3a8c359…`: **0 detections**. 44 engines returned a verdict and none
-flagged it, 23 timed out on the 42 MB file and 3 failed, which is ordinary for
-an installer this size. DeepInstinct, the only engine that flagged the 1.10.0
-installer, is clean on this one.
+The 1.11.0 artefacts were measured on 2026-11-01:
+
+| 1.11.0 artefact | sha256 | Detections |
+|---|---|---|
+| the Inno Setup installer | `61a3a8c359…` | **0** of 44 engines that answered |
+| `MinimalPDF_Compress-1.11.0-windows-x86_64.zip` | `a983609005…` | **1 / 68** |
+| `MinimalPDF_Compress.exe` inside it | `2b573a4ea4…` | **1 / 71** |
+
+Nothing flagged the installer, and DeepInstinct — the only engine that flagged
+the 1.10.0 one — is clean here. Its 23 timeouts are the 42 MB file size, not a
+verdict.
+
+The executable's one hit is Microsoft again, `Trojan:Win32/Wacatac.C!ml`, and
+the zip's is the same engine and family, `Trojan:Script/Wacatac.C!ml`, which it
+reaches through the executable inside. Zillya, which flagged the 1.10.0 zip, is
+clean now. So Microsoft is the only engine still objecting anywhere, and it
+objects to the executable, not to the installer that carries the identical
+bytes — which is why the installer is the artefact to recommend on Windows.
+
+The executable needed no upload: VirusTotal unpacks installers and scans what
+is inside, so submitting the installer measured it too.
 
 The single remaining hit on the executable is Microsoft,
 `Trojan:Win32/Wacatac.C!ml` — a machine-learning signature, which is what an
