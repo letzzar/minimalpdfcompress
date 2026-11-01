@@ -370,7 +370,8 @@
           "from": "**/ect.exe",
           "to": "bin/ect.exe"
         }
-      ]
+      ],
+      "optional": true
     },
     {
       "name": "ect",
@@ -387,7 +388,8 @@
           "to": "bin/ect",
           "executable": true
         }
-      ]
+      ],
+      "optional": true
     },
     {
       "name": "ect",
@@ -404,7 +406,8 @@
           "to": "bin/ect",
           "executable": true
         }
-      ]
+      ],
+      "optional": true
     },
     {
       "name": "jpegoptim",
@@ -420,7 +423,8 @@
           "from": "**/jpegoptim.exe",
           "to": "bin/jpegoptim.exe"
         }
-      ]
+      ],
+      "optional": true
     },
     {
       "name": "pngquant",
@@ -436,7 +440,8 @@
           "from": "**/pngquant.exe",
           "to": "bin/pngquant.exe"
         }
-      ]
+      ],
+      "optional": true
     }
   ]
 }

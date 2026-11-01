@@ -65,6 +65,14 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
+class DownloadFailed(Exception):
+    """A dependency could not be fetched.
+
+    Deliberately distinct from a hash mismatch: a network failure on an
+    optional tool is survivable, bytes that do not match their pin never are.
+    """
+
+
 def download(url, dest, attempts=4):
     """Fetch a URL, retrying on transient network failures.
 
@@ -86,7 +94,7 @@ def download(url, dest, attempts=4):
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
             partial.unlink(missing_ok=True)
             if attempt == attempts:
-                raise SystemExit(f"Could not download {url} after {attempts} attempts: {exc}")
+                raise DownloadFailed(f"{url} after {attempts} attempts: {exc}")
             delay = 2 ** attempt
             print(f"  attempt {attempt} failed ({exc}); retrying in {delay}s")
             time.sleep(delay)
@@ -316,9 +324,20 @@ def main(argv=None):
     newly_pinned = []
 
     print(f"platform: {wanted}\n")
+    skipped = []
     for dep in selected:
         print(f"{dep['name']} {dep['version']} ({dep['platform']})")
-        archive, actual = resolve(dep, args.force)
+        try:
+            archive, actual = resolve(dep, args.force)
+        except DownloadFailed as exc:
+            # A tool the application can live without should not be able to
+            # take a release down because its publisher's site is unreachable;
+            # find_executable() falls back to PATH for these at runtime.
+            if not dep.get("optional"):
+                raise SystemExit(f"Could not download {exc}")
+            print(f"  SKIPPED, could not download {exc}")
+            skipped.append(dep["name"])
+            continue
 
         if dep.get("sha256") is None:
             if not args.update_lock:
@@ -359,6 +378,10 @@ def main(argv=None):
     if args.pin_only:
         print("\nHashes recorded; nothing was installed (--pin-only).")
         return 0
+
+    if skipped:
+        print(f"\nNot bundled this time: {', '.join(skipped)}. The build is still "
+              "valid; the app looks for them on PATH and skips their step if absent.")
 
     host_os = wanted.split("-")[0]
     hint = SYSTEM_TOOLS.get(host_os)
