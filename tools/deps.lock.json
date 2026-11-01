@@ -432,16 +432,18 @@
       "version": "3.0.3",
       "homepage": "https://pngquant.org/",
       "license": "GPL-3.0-or-later",
-      "url": "https://pngquant.org/pngquant-windows.zip",
-      "sha256": "bd0257aeeccfe446a4cd764927e26f8af6051796f28abed104307284107b120d",
-      "archive": "zip",
+      "url": "https://static.crates.io/crates/pngquant/pngquant-3.0.3.crate",
+      "sha256": "68a12bdd8825f9989f4ee9a6ab0b42727dae57728b939ef63453366697a07232",
+      "archive": "targz",
       "members": [
         {
-          "from": "**/pngquant.exe",
+          "from": "pngquant.exe",
           "to": "bin/pngquant.exe"
         }
       ],
-      "optional": true
+      "optional": true,
+      "comment": "Built from the crates.io source release rather than from pngquant.org: that host has been unreachable from CI runners twice, while crates.io is CDN-backed. The .crate file is a plain tar.gz, so it is still pinned by hash.",
+      "build": "cargo"
     }
   ]
 }

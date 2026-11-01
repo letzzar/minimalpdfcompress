@@ -148,7 +148,7 @@ You need Python 3.10+ (3.13 recommended) and a C compiler, which Nuitka uses.
 
 | Platform | Prerequisites |
 |---|---|
-| Windows | Visual Studio Build Tools with the "Desktop development with C++" workload (or MinGW-w64, which Nuitka offers to download), plus [7-Zip](https://www.7-zip.org/) to unpack the Ghostscript installer |
+| Windows | Visual Studio Build Tools with the "Desktop development with C++" workload (or MinGW-w64, which Nuitka offers to download), plus [7-Zip](https://www.7-zip.org/) to unpack the Ghostscript installer. [Rust](https://rustup.rs/) is optional: without it pngquant is simply not bundled |
 | macOS | `xcode-select --install`, then `brew install ghostscript` |
 | Linux | `sudo apt install build-essential python3-tk tk-dev patchelf ghostscript` |
 
@@ -201,7 +201,7 @@ official project. A download that does not match its pin aborts the build.
 | oxipng | 10.2.1 | all | [shssoichiro/oxipng](https://github.com/shssoichiro/oxipng) |
 | ECT | 0.9.5 | Windows, macOS | [fhanau/Efficient-Compression-Tool](https://github.com/fhanau/Efficient-Compression-Tool) |
 | jpegoptim | 1.5.6-rel1 | Windows only | [XhmikosR/jpegoptim-windows](https://github.com/XhmikosR/jpegoptim-windows) |
-| pngquant | 3.0.3 | Windows only | [pngquant.org](https://pngquant.org/) |
+| pngquant | 3.0.3 | Windows only (built from source) | [crates.io](https://crates.io/crates/pngquant) |
 
 Artifex publishes a Windows installer but only source for Linux and macOS, so
 on those platforms the build compiles Ghostscript from the pinned

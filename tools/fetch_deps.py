@@ -65,11 +65,11 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
-class DownloadFailed(Exception):
-    """A dependency could not be fetched.
+class DependencyUnavailable(Exception):
+    """A dependency could not be obtained: unreachable host, missing toolchain.
 
-    Deliberately distinct from a hash mismatch: a network failure on an
-    optional tool is survivable, bytes that do not match their pin never are.
+    Deliberately distinct from a hash mismatch: not getting an optional tool is
+    survivable, bytes that do not match their pin never are.
     """
 
 
@@ -94,7 +94,7 @@ def download(url, dest, attempts=4):
         except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
             partial.unlink(missing_ok=True)
             if attempt == attempts:
-                raise DownloadFailed(f"{url} after {attempts} attempts: {exc}")
+                raise DependencyUnavailable(f"{url} after {attempts} attempts: {exc}")
             delay = 2 ** attempt
             print(f"  attempt {attempt} failed ({exc}); retrying in {delay}s")
             time.sleep(delay)
@@ -224,7 +224,37 @@ def build_ghostscript(source, workdir):
     return normalised
 
 
-BUILDERS = {"ghostscript": build_ghostscript}
+def build_cargo(source, workdir):
+    """Compile a crate from its crates.io source release.
+
+    Worth the build time where a project publishes its source to a reliable
+    registry but serves its own binaries from a site that is not dependable:
+    crates.io is CDN-backed, and the `.crate` file is a plain tar.gz we can pin
+    by hash like any other download.
+    """
+    trees = [p for p in source.iterdir() if p.is_dir()]
+    if not trees:
+        raise SystemExit("No source directory inside the crate archive")
+    if not shutil.which("cargo"):
+        raise DependencyUnavailable(
+            "cargo is not installed, so this crate cannot be built "
+            "(install Rust from https://rustup.rs/)")
+    tree = trees[0]
+    log = workdir / "cargo.log"
+    print("    cargo build --release --locked")
+    with log.open("w", encoding="utf-8", errors="ignore") as handle:
+        result = subprocess.run(["cargo", "build", "--release", "--locked"],
+                                cwd=tree, stdout=handle, stderr=subprocess.STDOUT,
+                                text=True)
+    if result.returncode != 0:
+        lines = log.read_text(encoding="utf-8", errors="ignore").splitlines()
+        errors = [line for line in lines if "error" in line.lower()]
+        raise SystemExit("cargo build failed:\n  "
+                         + "\n  ".join(errors[-20:] + ["--- end of log ---"] + lines[-30:]))
+    return tree / "target" / "release"
+
+
+BUILDERS = {"ghostscript": build_ghostscript, "cargo": build_cargo}
 
 
 def place(dep, source, dest):
@@ -329,13 +359,13 @@ def main(argv=None):
         print(f"{dep['name']} {dep['version']} ({dep['platform']})")
         try:
             archive, actual = resolve(dep, args.force)
-        except DownloadFailed as exc:
+        except DependencyUnavailable as exc:
             # A tool the application can live without should not be able to
             # take a release down because its publisher's site is unreachable;
             # find_executable() falls back to PATH for these at runtime.
             if not dep.get("optional"):
-                raise SystemExit(f"Could not download {exc}")
-            print(f"  SKIPPED, could not download {exc}")
+                raise SystemExit(f"Could not obtain {dep['name']}: {exc}")
+            print(f"  SKIPPED: {exc}")
             skipped.append(dep["name"])
             continue
 
@@ -359,12 +389,21 @@ def main(argv=None):
         with tempfile.TemporaryDirectory(prefix="mpdf-dep-") as workdir:
             source = unpack(dep["archive"], archive, Path(workdir))
             recipe = dep.get("build")
-            if recipe:
-                builder = BUILDERS.get(recipe)
-                if builder is None:
-                    raise SystemExit(f"{dep['name']}: unknown build recipe '{recipe}'")
-                print(f"  compiling from source, this takes a few minutes")
-                source = builder(source, Path(workdir))
+            try:
+                if recipe:
+                    builder = BUILDERS.get(recipe)
+                    if builder is None:
+                        raise SystemExit(f"{dep['name']}: unknown build recipe '{recipe}'")
+                    print("  compiling from source, this takes a few minutes")
+                    source = builder(source, Path(workdir))
+            except DependencyUnavailable as exc:
+                # Same reasoning as a failed download: a missing toolchain is
+                # only fatal for a tool the application actually needs.
+                if not dep.get("optional"):
+                    raise SystemExit(f"Could not build {dep['name']}: {exc}")
+                print(f"  SKIPPED: {exc}")
+                skipped.append(dep["name"])
+                continue
             for item in place(dep, source, dest):
                 print(f"  -> {item}")
 
