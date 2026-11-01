@@ -80,13 +80,13 @@ platform — on Windows from Artifex's installer, elsewhere compiled from their
 pinned source release during the build, since Artifex publishes no prebuilt
 Linux or macOS binaries.
 
-Two optional extras are not bundled outside Windows, because their projects
-publish no binaries for other platforms. Without them the app simply skips
-those image optimisation steps:
+One optional extra is not bundled outside Windows, because its project
+publishes no binaries for other platforms. Without it the app simply skips
+that image optimisation step:
 
 ```bash
-brew install pngquant jpegoptim          # macOS
-sudo apt install pngquant jpegoptim      # Debian/Ubuntu
+brew install jpegoptim          # macOS
+sudo apt install jpegoptim      # Debian/Ubuntu
 ```
 
 macOS will refuse to open an unsigned app downloaded from the internet until
@@ -201,7 +201,7 @@ official project. A download that does not match its pin aborts the build.
 | oxipng | 10.2.1 | all | [shssoichiro/oxipng](https://github.com/shssoichiro/oxipng) |
 | ECT | 0.9.5 | Windows, macOS | [fhanau/Efficient-Compression-Tool](https://github.com/fhanau/Efficient-Compression-Tool) |
 | jpegoptim | 1.5.6-rel1 | Windows only | [XhmikosR/jpegoptim-windows](https://github.com/XhmikosR/jpegoptim-windows) |
-| pngquant | 3.0.3 | Windows only (built from source) | [crates.io](https://crates.io/crates/pngquant) |
+| pngquant | 3.0.3 | all (built from source) | [crates.io](https://crates.io/crates/pngquant) |
 
 Artifex publishes a Windows installer but only source for Linux and macOS, so
 on those platforms the build compiles Ghostscript from the pinned
