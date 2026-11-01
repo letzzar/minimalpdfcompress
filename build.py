@@ -67,22 +67,15 @@ def ensure_dependencies(skip):
     if not skip:
         run([sys.executable, str(ROOT / "tools" / "fetch_deps.py")])
 
+    # Ghostscript is bundled on every platform now: the Artifex installer on
+    # Windows, compiled from their pinned source release everywhere else. A
+    # missing one means the build is broken, not that the user must install it.
     gs = "gswin64c.exe" if IS_WINDOWS else "gs"
-    if (SRC / "bin" / gs).is_file():
-        return
-    if IS_WINDOWS:
-        # On Windows Ghostscript is bundled, so a missing one is a broken build.
+    if not (SRC / "bin" / gs).is_file():
         raise SystemExit(
-            f"Ghostscript ({gs}) was not fetched into src/bin.\n"
+            f"Ghostscript ({gs}) was not placed in src/bin.\n"
             "Run:  python tools/fetch_deps.py"
         )
-    # Elsewhere Artifex publishes no prebuilt binary, so the app resolves gs from
-    # the end user's PATH at runtime. The build machine having it is irrelevant.
-    hint = "brew install ghostscript" if IS_MACOS else "sudo apt install ghostscript"
-    found = shutil.which(gs)
-    print(f"note: Ghostscript is not bundled on {PLATFORM}; the app will use the "
-          f"one on the user's PATH at runtime"
-          + (f" (this machine has {found})" if found else f" -- users install it with: {hint}"))
 
 
 def make_icns():

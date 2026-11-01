@@ -58,6 +58,138 @@
       ]
     },
     {
+      "name": "ghostscript",
+      "platform": "linux-x86_64",
+      "version": "10.08.0",
+      "homepage": "https://www.ghostscript.com/",
+      "license": "AGPL-3.0",
+      "comment": "Artifex publishes binaries only for Windows, so on this platform the official source release is compiled at build time.",
+      "url": "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10080/ghostscript-10.08.0.tar.gz",
+      "sha256": "caf199e3f233f1290b27d0972d636f66c303355f2353309b7bfddf1edda06b3d",
+      "archive": "targz",
+      "build": "ghostscript",
+      "members": [
+        {
+          "from": "bin/gs",
+          "to": "bin/gs",
+          "executable": true
+        },
+        {
+          "from": "share/ghostscript/*/Resource",
+          "to": "Resource"
+        },
+        {
+          "from": "share/ghostscript/*/iccprofiles",
+          "to": "iccprofiles",
+          "optional": true
+        },
+        {
+          "from": "share/ghostscript/*/lib",
+          "to": "lib",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "ghostscript",
+      "platform": "linux-aarch64",
+      "version": "10.08.0",
+      "homepage": "https://www.ghostscript.com/",
+      "license": "AGPL-3.0",
+      "comment": "Artifex publishes binaries only for Windows, so on this platform the official source release is compiled at build time.",
+      "url": "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10080/ghostscript-10.08.0.tar.gz",
+      "sha256": "caf199e3f233f1290b27d0972d636f66c303355f2353309b7bfddf1edda06b3d",
+      "archive": "targz",
+      "build": "ghostscript",
+      "members": [
+        {
+          "from": "bin/gs",
+          "to": "bin/gs",
+          "executable": true
+        },
+        {
+          "from": "share/ghostscript/*/Resource",
+          "to": "Resource"
+        },
+        {
+          "from": "share/ghostscript/*/iccprofiles",
+          "to": "iccprofiles",
+          "optional": true
+        },
+        {
+          "from": "share/ghostscript/*/lib",
+          "to": "lib",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "ghostscript",
+      "platform": "macos-x86_64",
+      "version": "10.08.0",
+      "homepage": "https://www.ghostscript.com/",
+      "license": "AGPL-3.0",
+      "comment": "Artifex publishes binaries only for Windows, so on this platform the official source release is compiled at build time.",
+      "url": "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10080/ghostscript-10.08.0.tar.gz",
+      "sha256": "caf199e3f233f1290b27d0972d636f66c303355f2353309b7bfddf1edda06b3d",
+      "archive": "targz",
+      "build": "ghostscript",
+      "members": [
+        {
+          "from": "bin/gs",
+          "to": "bin/gs",
+          "executable": true
+        },
+        {
+          "from": "share/ghostscript/*/Resource",
+          "to": "Resource"
+        },
+        {
+          "from": "share/ghostscript/*/iccprofiles",
+          "to": "iccprofiles",
+          "optional": true
+        },
+        {
+          "from": "share/ghostscript/*/lib",
+          "to": "lib",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "name": "ghostscript",
+      "platform": "macos-aarch64",
+      "version": "10.08.0",
+      "homepage": "https://www.ghostscript.com/",
+      "license": "AGPL-3.0",
+      "comment": "Artifex publishes binaries only for Windows, so on this platform the official source release is compiled at build time.",
+      "url": "https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10080/ghostscript-10.08.0.tar.gz",
+      "sha256": "caf199e3f233f1290b27d0972d636f66c303355f2353309b7bfddf1edda06b3d",
+      "archive": "targz",
+      "build": "ghostscript",
+      "members": [
+        {
+          "from": "bin/gs",
+          "to": "bin/gs",
+          "executable": true
+        },
+        {
+          "from": "share/ghostscript/*/Resource",
+          "to": "Resource"
+        },
+        {
+          "from": "share/ghostscript/*/iccprofiles",
+          "to": "iccprofiles",
+          "optional": true
+        },
+        {
+          "from": "share/ghostscript/*/lib",
+          "to": "lib",
+          "optional": true
+        }
+      ]
+    },
+    {
       "name": "cpdf",
       "platform": "windows-x86_64",
       "version": "git-4d44a0da",

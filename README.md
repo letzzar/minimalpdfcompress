@@ -62,18 +62,19 @@ folder except your settings.
 Windows on ARM runs the x86_64 build under emulation; there is no native arm64
 Windows build, because Ghostscript publishes no arm64 Windows binary.
 
-**On macOS and Linux, install Ghostscript first.** Artifex ships no prebuilt
-binaries for those platforms, so it cannot be bundled and the app picks it up
-from your `PATH`:
+**Nothing else to install.** Ghostscript, cpdf and oxipng are bundled on every
+platform — on Windows from Artifex's installer, elsewhere compiled from their
+pinned source release during the build, since Artifex publishes no prebuilt
+Linux or macOS binaries.
+
+Two optional extras are not bundled outside Windows, because their projects
+publish no binaries for other platforms. Without them the app simply skips
+those image optimisation steps:
 
 ```bash
-brew install ghostscript pngquant jpegoptim          # macOS
-sudo apt install ghostscript pngquant jpegoptim      # Debian/Ubuntu
+brew install pngquant jpegoptim          # macOS
+sudo apt install pngquant jpegoptim      # Debian/Ubuntu
 ```
-
-Ghostscript is the only one that is actually required; without `pngquant` and
-`jpegoptim` the app just skips those optimisation steps. `cpdf` and `oxipng`
-are bundled on every platform.
 
 macOS will refuse to open an unsigned app downloaded from the internet until
 you clear the quarantine flag:
@@ -176,17 +177,24 @@ official project. A download that does not match its pin aborts the build.
 
 | Tool | Version | Bundled on | Upstream |
 |---|---|---|---|
-| Ghostscript | 10.08.0 | Windows only | [ArtifexSoftware/ghostpdl-downloads](https://github.com/ArtifexSoftware/ghostpdl-downloads) |
+| Ghostscript | 10.08.0 | all (compiled from source off Windows) | [ArtifexSoftware/ghostpdl-downloads](https://github.com/ArtifexSoftware/ghostpdl-downloads) |
 | cpdf | `4d44a0da` | all but Linux arm64 | [coherentgraphics/cpdf-binaries](https://github.com/coherentgraphics/cpdf-binaries) |
 | oxipng | 10.2.1 | all | [shssoichiro/oxipng](https://github.com/shssoichiro/oxipng) |
 | ECT | 0.9.5 | Windows, macOS | [fhanau/Efficient-Compression-Tool](https://github.com/fhanau/Efficient-Compression-Tool) |
 | jpegoptim | 1.5.6-rel1 | Windows only | [XhmikosR/jpegoptim-windows](https://github.com/XhmikosR/jpegoptim-windows) |
 | pngquant | 3.0.3 | Windows only | [pngquant.org](https://pngquant.org/) |
 
-"Windows only" is not a choice — those projects publish no prebuilt binary for
-the other platforms, so there is nothing to pin and verify. On macOS and Linux
-the app resolves them from `PATH` instead, which is why the install section
-asks you to run one `brew`/`apt` line.
+Artifex publishes a Windows installer but only source for Linux and macOS, so
+on those platforms the build compiles Ghostscript from the pinned
+`ghostscript-10.08.0.tar.gz` and bundles the result. That is better provenance
+than a prebuilt binary, not worse: the source hash is pinned and the compile
+happens in CI under an attestation. A Ghostscript installed to a prefix that
+does not exist on the user's machine cannot find its own resources, so the app
+sets `GS_LIB` to the copies shipped beside it.
+
+"Windows only" for pngquant and jpegoptim is not a choice — those projects
+publish no prebuilt binary for the other platforms, so there is nothing to pin
+and verify, and the app resolves them from `PATH` instead.
 
 cpdf is left out on Linux arm64 for a different reason: the binary upstream
 publishes is linked against `GLIBC_2.42`, which no current distribution ships,

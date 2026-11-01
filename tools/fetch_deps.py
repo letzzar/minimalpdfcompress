@@ -25,6 +25,8 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
+import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -63,14 +65,31 @@ def sha256_file(path):
     return digest.hexdigest()
 
 
-def download(url, dest):
+def download(url, dest, attempts=4):
+    """Fetch a URL, retrying on transient network failures.
+
+    CI runners time out on these often enough to break a release build, and a
+    failed download here is never a reason to stop the whole thing on the
+    first try. The hash check afterwards is what decides whether the bytes are
+    acceptable, so retrying is safe.
+    """
     dest.parent.mkdir(parents=True, exist_ok=True)
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     partial = dest.with_name(dest.name + ".part")
-    with urllib.request.urlopen(request, timeout=180) as response:
-        with partial.open("wb") as handle:
-            shutil.copyfileobj(response, handle, CHUNK)
-    partial.replace(dest)
+    for attempt in range(1, attempts + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=180) as response:
+                with partial.open("wb") as handle:
+                    shutil.copyfileobj(response, handle, CHUNK)
+            partial.replace(dest)
+            return
+        except (urllib.error.URLError, TimeoutError, ConnectionError, OSError) as exc:
+            partial.unlink(missing_ok=True)
+            if attempt == attempts:
+                raise SystemExit(f"Could not download {url} after {attempts} attempts: {exc}")
+            delay = 2 ** attempt
+            print(f"  attempt {attempt} failed ({exc}); retrying in {delay}s")
+            time.sleep(delay)
 
 
 def find_7zip():
@@ -119,6 +138,42 @@ def unpack(archive_kind, archive, workdir):
     else:
         raise SystemExit(f"Unknown archive kind: {archive_kind}")
     return target
+
+
+def build_ghostscript(source, workdir):
+    """Compile Ghostscript from the official source release.
+
+    Artifex publishes installers for Windows but only source for Linux and
+    macOS, so compiling is the only way to bundle a known, pinned version there
+    instead of telling the user to install one themselves.
+    """
+    trees = [p for p in source.iterdir() if p.is_dir() and p.name.startswith("ghostscript")]
+    if not trees:
+        raise SystemExit("No ghostscript-* directory inside the source archive")
+    tree, stage = trees[0], workdir / "stage"
+    log = workdir / "build.log"
+    env = os.environ.copy()
+    if sys.platform == "darwin":
+        env.setdefault("MACOSX_DEPLOYMENT_TARGET", "11.0")
+    steps = [
+        ["./configure", f"--prefix={stage}",
+         "--without-x", "--disable-cups", "--disable-gtk", "--disable-dbus",
+         "--without-tesseract", "--without-libidn", "--without-libpaper"],
+        ["make", f"-j{os.cpu_count() or 2}"],
+        ["make", "install"],
+    ]
+    with log.open("w", encoding="utf-8", errors="ignore") as handle:
+        for step in steps:
+            print(f"    {' '.join(step)}")
+            result = subprocess.run(step, cwd=tree, env=env, stdout=handle,
+                                    stderr=subprocess.STDOUT, text=True)
+            if result.returncode != 0:
+                tail = log.read_text(encoding="utf-8", errors="ignore").splitlines()[-40:]
+                raise SystemExit("Ghostscript build failed:\n  " + "\n  ".join(tail))
+    return stage
+
+
+BUILDERS = {"ghostscript": build_ghostscript}
 
 
 def place(dep, source, dest):
@@ -241,6 +296,13 @@ def main(argv=None):
 
         with tempfile.TemporaryDirectory(prefix="mpdf-dep-") as workdir:
             source = unpack(dep["archive"], archive, Path(workdir))
+            recipe = dep.get("build")
+            if recipe:
+                builder = BUILDERS.get(recipe)
+                if builder is None:
+                    raise SystemExit(f"{dep['name']}: unknown build recipe '{recipe}'")
+                print(f"  compiling from source, this takes a few minutes")
+                source = builder(source, Path(workdir))
             for item in place(dep, source, dest):
                 print(f"  -> {item}")
 

@@ -59,6 +59,26 @@ def find_jpegoptim(): return find_executable("jpegoptim", "jpegoptim")
 def find_ect(): return find_executable("ect", "ECT")
 def find_oxipng(): return find_executable("oxipng", "oxipng")
 
+def subprocess_env():
+    """Environment for the bundled tools.
+
+    A Ghostscript we compiled ourselves has its resource directory baked in at
+    the prefix it was configured with, which does not exist on the user's
+    machine. Pointing GS_LIB at the copies shipped beside the app is what makes
+    the install tree relocatable; without it gs cannot find gs_init.ps and
+    refuses to start. Harmless for every other tool.
+    """
+    env = os.environ.copy()
+    roots = []
+    for name in ("Resource/Init", "lib", "Resource", "iccprofiles"):
+        path = resource_path(name)
+        if path.is_dir(): roots.append(str(path))
+    if roots:
+        existing = env.get("GS_LIB")
+        if existing: roots.append(existing)
+        env["GS_LIB"] = os.pathsep.join(roots)
+    return env
+
 def format_size(size_bytes, decimals=1):
     abs_size = abs(size_bytes)
     if abs_size > 1024 * 1024: return f"{size_bytes / (1024*1024):.{decimals}f} MB"
@@ -84,7 +104,7 @@ def run_command(command, check=True):
     command = [str(part) for part in command]
     logging.info(f"Executing command: {command}")
     try:
-        kwargs = { 'stdin': subprocess.DEVNULL, 'check': check, 'capture_output': True, 'text': True, 'encoding': 'utf-8', 'errors': 'ignore', 'shell': False }
+        kwargs = { 'stdin': subprocess.DEVNULL, 'check': check, 'capture_output': True, 'text': True, 'encoding': 'utf-8', 'errors': 'ignore', 'shell': False, 'env': subprocess_env() }
         if sys.platform == "win32": kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
         result = subprocess.run(command, **kwargs)
         if result.stderr:

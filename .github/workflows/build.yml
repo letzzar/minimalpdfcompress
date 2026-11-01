@@ -52,20 +52,21 @@ jobs:
           cache: pip
 
       # Nuitka's tk-inter plugin needs the Tk headers and libraries present.
-      # Ghostscript is a runtime dependency the end user supplies on these
-      # platforms; it is installed here only so the build can smoke-test.
+      # Ghostscript is deliberately NOT installed here: it is compiled from the
+      # pinned Artifex source and bundled, so leaving the system one out is what
+      # makes the smoke test prove that our own build actually works.
       - name: Install system dependencies (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
-            python3-tk tk-dev ghostscript pngquant jpegoptim patchelf
+            build-essential python3-tk tk-dev pngquant jpegoptim patchelf
 
       - name: Install system dependencies (macOS)
         if: runner.os == 'macOS'
         # qpdf is for pikepdf: it publishes no x86_64 macOS wheel, so pip has to
         # build it from source there and needs the qpdf headers.
-        run: brew install ghostscript pngquant jpegoptim qpdf || true
+        run: brew install pngquant jpegoptim qpdf || true
 
       - name: Install Python dependencies
         run: |
