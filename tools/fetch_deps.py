@@ -155,6 +155,13 @@ def build_ghostscript(source, workdir):
     env = os.environ.copy()
     if sys.platform == "darwin":
         env.setdefault("MACOSX_DEPLOYMENT_TARGET", "11.0")
+        # Recent clang promotes these three to hard errors. Ghostscript's C
+        # still trips them and Artifex build with older toolchains, so without
+        # this the compile fails on current Xcode.
+        lenient = ("-Wno-error=implicit-function-declaration "
+                   "-Wno-error=int-conversion "
+                   "-Wno-error=incompatible-function-pointer-types")
+        env["CFLAGS"] = (env.get("CFLAGS", "") + " " + lenient).strip()
     steps = [
         ["./configure", f"--prefix={stage}",
          "--without-x", "--disable-cups", "--disable-gtk", "--disable-dbus",
@@ -168,8 +175,12 @@ def build_ghostscript(source, workdir):
             result = subprocess.run(step, cwd=tree, env=env, stdout=handle,
                                     stderr=subprocess.STDOUT, text=True)
             if result.returncode != 0:
-                tail = log.read_text(encoding="utf-8", errors="ignore").splitlines()[-40:]
-                raise SystemExit("Ghostscript build failed:\n  " + "\n  ".join(tail))
+                lines = log.read_text(encoding="utf-8", errors="ignore").splitlines()
+                # The compiler's own error lines are what matter and they are
+                # rarely at the end of the log, so surface them separately.
+                errors = [line for line in lines if "error:" in line.lower()]
+                detail = errors[-20:] + ["--- end of build log ---"] + lines[-60:]
+                raise SystemExit("Ghostscript build failed:\n  " + "\n  ".join(detail))
 
     # Normalise the install tree into fixed paths, so the manifest does not
     # have to track where a given Ghostscript version puts things.
