@@ -15,6 +15,13 @@ español.
 
 El Director ha probado a mano Windows, macOS y Raspberry Pi: funcionan.
 
+**Hay trece commits en `main` por encima de esa etiqueta y sin publicar**: el
+icono sin marco negro, `jpegoptim` empaquetado en Linux y macOS, `pngquant`
+compilado desde crates.io y toda la modernización de la interfaz. Nada de eso
+ha llegado todavía a una release; el siguiente `v1.10.0-fork.5` lo arrastra
+todo. Y nada de ello se ha visto fuera de Windows: la interfaz nueva sólo se ha
+fotografiado aquí.
+
 ## Completado
 
 - Auditoría del falso positivo de antivirus de upstream v1.9.7 (38/71). Causa
@@ -39,6 +46,19 @@ El Director ha probado a mano Windows, macOS y Raspberry Pi: funcionan.
   El `TranslatedCombobox` que estaba planificado resultó innecesario: los
   `Radiobutton` ya separaban `text=` de `value=`, y la única excepción era la
   rotación, que se arregló con una línea.
+- **Interfaz modernizada, con las once pestañas repasadas una a una.** El tema
+  da profundidad con tres niveles de superficie en vez de con contornos, hay
+  una sola escala tipográfica, los campos van rellenos y los interruptores
+  tienen indicador propio dibujado como pastilla. La pestaña seleccionada se
+  queda a nivel de las demás y se distingue sólo por el color: `clam` la
+  desplazaba hacia abajo y hacia los lados, y se corrigió fijando `padding` y
+  `expand` iguales en todos los estados. Del repaso salieron dos defectos
+  sistemáticos, no casos sueltos: el lienzo de vista previa se creaba con
+  `highlightthickness=1` y dibujaba una caja vacía con contorno en Rotar,
+  Borrar páginas, Sello y Encabezado; y `ttk.LabelFrame` venía con surco y
+  título en tamaño de texto normal, lo que descolocaba las tres secciones de
+  Contraseña y «Advanced Settings». Dividir, Índice, Metadatos, PDF a imagen y
+  Reparar ya estaban bien y no se tocaron.
 
 ## En curso
 
@@ -51,17 +71,18 @@ Nada a medias.
 - El selector de idioma no se ha probado pulsándolo: se ha verificado que el
   valor persiste y que la app arranca en ambos idiomas, pero el diálogo de
   "hay que reiniciar" no lo ha visto nadie todavía.
-- **Modernizar la interfaz: primera pasada hecha, falta repasar pestañas.**
-  Hechos el tema, la disposición de Comprimir, las pestañas sin recuadro y los
-  interruptores. Sin revisar una a una las diez pestañas de utilidades que no
-  son Unir: Dividir, Rotar, Borrar páginas, Contraseña, Sello, Encabezado,
-  Índice, Metadatos, PDF a imagen y Reparar.
-- El título «Advanced Settings» sigue siendo un `LabelFrame` y queda fuera de
-  su tarjeta, pequeño y con contorno. Hay que sustituirlo por una tarjeta con
-  cabecera como las demás.
-- Hay un arnés de captura en el scratchpad (`capture.ps1` y `run_tab.py`) que
-  lanza la app con una pestaña concreta y la fotografía. No está en el repo;
-  si va a hacer falta más, merece la pena moverlo a `tools/`.
+- En la hoja de contacto de PDF a imagen el deslizador de resolución (DPI)
+  parecía llevar recuadro. Puede ser cosa de la escala a la que se miró la
+  miniatura; no se ha vuelto a capturar esa pestaña después de aplanar
+  `TLabelframe`, así que está sin confirmar en un sentido ni en otro.
+- Hay un arnés de captura en el scratchpad (`capture.ps1`, `run_tab.py`,
+  `sweep.ps1` y `montage.py`): lanza la app con una pestaña concreta, la
+  fotografía en el monitor donde esté la ventana y monta hojas de contacto. No
+  está en el repo; si va a hacer falta más trabajo visual, merece la pena
+  moverlo a `tools/`.
+- `AUDITORIA-v1.9.7.md` sigue sin versionar en la raíz del proyecto. Es el
+  informe del falso positivo con el que empezó todo esto; hay que decidir si
+  entra al repo, se mueve a `docs/` o se queda fuera.
 - `jpegoptim` es la única herramienta que el README sigue pidiendo instalar a
   mano fuera de Windows.
 - Firma de código: lo único que queda para la última detección de antivirus.

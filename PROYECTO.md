@@ -14,14 +14,14 @@ terceros invocados como subprocesos. No abre ninguna conexión de red.
 
 | Fichero | Líneas | Responsabilidad | Tocar aquí si… |
 |---|---:|---|---|
-| `src/main.py` | 37 | Arranque: logging, DPI awareness, lanza la GUI | cambia el arranque o el logging global |
-| `src/gui.py` | 1963 | **Toda** la interfaz: layout, estado, hilos, vistas previas, ajustes | cualquier cosa visible |
+| `src/main.py` | 41 | Arranque: logging, DPI awareness, lanza la GUI | cambia el arranque o el logging global |
+| `src/gui.py` | 1973 | **Toda** la interfaz: layout, estado, hilos, vistas previas, ajustes | cualquier cosa visible |
 | `src/i18n.py` | 258 | Catálogo de traducción y elección de idioma | añadir o corregir textos traducidos, añadir un idioma |
 | `src/backend.py` | 606 | Lógica de las 11 pestañas de utilidades | merge, split, rotar, sellos, metadatos… |
 | `src/pdf_optimizer.py` | 654 | Clase `PdfOptimizer`: los cuatro modos de compresión | compresión, lossless, PDF/A, quitar imágenes |
 | `src/utils.py` | 129 | Localizar binarios, rutas de recursos, ejecutar subprocesos | invocación de herramientas, rutas, configuración |
-| `src/ui_components.py` | 356 | Widgets propios (`CompressionGauge`, `CustomSlider`, `PositionSelector`, `DropZone`…) | comportamiento de un control concreto |
-| `src/styles.py` | 115 | Tema claro/oscuro, paletas | colores, tipografías |
+| `src/ui_components.py` | 359 | Widgets propios (`CompressionGauge`, `CustomSlider`, `PositionSelector`, `DropZone`…) | comportamiento de un control concreto |
+| `src/styles.py` | 276 | Tema claro/oscuro, paletas, escala tipográfica y los estilos `ttk` (incluido el indicador de los interruptores, dibujado con PIL) | colores, tipografías, aspecto de un control de `ttk` |
 | `src/constants.py` | 53 | Versión y constantes compartidas | **cuidado**: sus valores son identificadores lógicos |
 | `src/tooltips.py` | 244 | 100 textos de ayuda en inglés y español, más el accesor `tooltip()` | textos de ayuda |
 
@@ -115,6 +115,14 @@ Lo que hay que tener presente antes de prometer nada:
   crear el primer widget.
 - Tres `text=` son f-strings con variables (`"({dpi} DPI)"`, `"{escala}%"`) y
   se han dejado sin traducir: no llevan palabras.
+- **El tema da profundidad con superficies, no con contornos.** Hay tres
+  niveles (`BG`, `WIDGET_BG`, `ELEVATED`) y ningún borde decorativo: las
+  tarjetas, las pestañas, los `LabelFrame` y los lienzos de vista previa van
+  planos a propósito. `clam` trae contorno y relieve de serie en casi todo, así
+  que al añadir un widget hay que apagárselos (`borderwidth=0`,
+  `highlightthickness=0`, y en `ttk` igualar `bordercolor`, `lightcolor` y
+  `darkcolor` al fondo). El indicador de los interruptores se dibuja con PIL a
+  4× y se reduce, porque `clam` no tiene pastilla.
 - **Sin firma de código** en ninguna plataforma. Es lo único que queda para
   eliminar la última detección de antivirus (1/71, Microsoft, heurística de ML).
 - **Sin cpdf en Linux arm64**: upstream lo enlaza contra GLIBC 2.42. Se saltan la
