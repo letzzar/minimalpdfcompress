@@ -54,8 +54,8 @@ folder except your settings.
 | Platform | Archive | Run |
 |---|---|---|
 | Windows x86_64 | `…-windows-x86_64.zip` | `MinimalPDF_Compress.exe` |
-| macOS Apple Silicon | `…-macos-aarch64.zip` | `./MinimalPDF_Compress` |
-| macOS Intel | `…-macos-x86_64.zip` | `./MinimalPDF_Compress` |
+| macOS Apple Silicon | `…-macos-aarch64.zip` | `MinimalPDF_Compress.app` — drag it to Applications |
+| macOS Intel | `…-macos-x86_64.zip` | `MinimalPDF_Compress.app` — drag it to Applications |
 | Linux x86_64 | `…-linux-x86_64.zip` | `./MinimalPDF_Compress` |
 | Linux arm64 | `…-linux-aarch64.zip` | `./MinimalPDF_Compress` |
 
@@ -75,11 +75,11 @@ Ghostscript is the only one that is actually required; without `pngquant` and
 `jpegoptim` the app just skips those optimisation steps. `cpdf` and `oxipng`
 are bundled on every platform.
 
-macOS will refuse to open an unsigned binary downloaded from the internet until
+macOS will refuse to open an unsigned app downloaded from the internet until
 you clear the quarantine flag:
 
 ```bash
-xattr -dr com.apple.quarantine MinimalPDF_Compress
+xattr -dr com.apple.quarantine MinimalPDF_Compress.app
 ```
 
 ### Verify what you downloaded

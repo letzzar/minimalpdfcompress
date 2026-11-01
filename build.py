@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-"""Build MinimalPDF Compress into a standalone folder, plus a zip of it.
+"""Build MinimalPDF Compress into a standalone app, plus an archive of it.
 
-Builds on Windows, macOS and Linux, x86_64 and arm64. The output is a *folder*,
-not a single self-extracting executable. That is the point of this fork: a
-onefile build carries a bootstrap that unpacks ~30 MB of console tools into a
-temp directory on every launch, and that behaviour -- not anything the
-application does -- is what antivirus heuristics score as packed malware. A
-folder build has nothing to unpack. See FORK.md for the measured difference.
+Builds on Windows, macOS and Linux, x86_64 and arm64. The output is a *folder*
+(a .app bundle on macOS), not a single self-extracting executable. That is the
+point of this fork: a onefile build carries a bootstrap that unpacks ~30 MB of
+console tools into a temp directory on every launch, and that behaviour -- not
+anything the application does -- is what antivirus heuristics score as packed
+malware. A folder build has nothing to unpack. See FORK.md for the measured
+difference.
 
-    python build.py                # standalone folder + zip  (recommended)
+    python build.py                # standalone build + archive  (recommended)
     python build.py --onefile      # additionally a single file (expect AV noise)
     python build.py --skip-deps    # reuse the binaries already fetched into src/
 """
@@ -32,11 +33,14 @@ sys.path.insert(0, str(ROOT / "tools"))
 from fetch_deps import host_platform  # noqa: E402
 
 APP_NAME = "MinimalPDF_Compress"
+DISPLAY_NAME = "MinimalPDF Compress"
+BUNDLE_ID = "io.github.minimalpdfcompress"
 PLATFORM = host_platform()
 IS_WINDOWS = PLATFORM.startswith("windows")
 IS_MACOS = PLATFORM.startswith("macos")
 EXE_SUFFIX = ".exe" if IS_WINDOWS else ""
 PAYLOAD_DIRS = ("bin", "lib", "Resource", "iccprofiles")
+ICON_PNG = SRC / "assets" / "icon.png"
 
 
 def app_version():
@@ -81,7 +85,29 @@ def ensure_dependencies(skip):
           + (f" (this machine has {found})" if found else f" -- users install it with: {hint}"))
 
 
-def nuitka_command(version, onefile):
+def make_icns():
+    """Convert assets/icon.png into the .icns a macOS bundle needs.
+
+    Done with the system tools rather than left to Nuitka, so the iconset has
+    every size the Finder and the Dock ask for.
+    """
+    destination = BUILD / "icon.icns"
+    iconset = BUILD / "icon.iconset"
+    shutil.rmtree(iconset, ignore_errors=True)
+    iconset.mkdir(parents=True, exist_ok=True)
+    for size in (16, 32, 128, 256, 512):
+        for scale in (1, 2):
+            name = f"icon_{size}x{size}{'@2x' if scale == 2 else ''}.png"
+            pixels = str(size * scale)
+            run(["sips", "-z", pixels, pixels, str(ICON_PNG), "--out", str(iconset / name)],
+                stdout=subprocess.DEVNULL)
+    run(["iconutil", "-c", "icns", str(iconset), "-o", str(destination)])
+    shutil.rmtree(iconset, ignore_errors=True)
+    print(f"  icon {destination.name} ({destination.stat().st_size:,} bytes)")
+    return destination
+
+
+def nuitka_command(version, onefile, icns=None):
     command = [
         sys.executable, "-m", "nuitka",
         "--assume-yes-for-downloads",
@@ -89,7 +115,7 @@ def nuitka_command(version, onefile):
         "--output-dir=" + str(BUILD),
         "--output-filename=" + APP_NAME + EXE_SUFFIX,
         "--company-name=MinimalPDF Compress contributors",
-        "--product-name=MinimalPDF Compress",
+        "--product-name=" + DISPLAY_NAME,
         "--file-description=PDF compression and utilities",
         "--product-version=" + numeric_version(version),
         "--file-version=" + numeric_version(version),
@@ -105,14 +131,39 @@ def nuitka_command(version, onefile):
             "--windows-icon-from-ico=" + str(SRC / "pdf.ico"),
         ]
     elif IS_MACOS:
-        # The window icon comes from iconphoto at runtime, which works on every
-        # platform. A proper Dock icon would need --macos-create-app-bundle,
-        # which changes the output layout; not done here yet.
-        pass
+        command += [
+            "--macos-create-app-bundle",
+            "--macos-app-name=" + DISPLAY_NAME,
+            "--macos-app-version=" + numeric_version(version),
+            "--macos-signed-app-name=" + BUNDLE_ID,
+        ]
+        if icns:
+            command.append("--macos-app-icon=" + str(icns))
     else:
-        command.append("--linux-icon=" + str(SRC / "assets" / "icon.png"))
+        command.append("--linux-icon=" + str(ICON_PNG))
     command.append(str(SRC / "main.py"))
     return command
+
+
+def collect_output():
+    """Move what Nuitka produced into dist/, and say where the payload goes.
+
+    On macOS a bundle's executable lives in Contents/MacOS, and that is also
+    where app_dir() looks, so the bundled tools have to sit beside it there.
+    """
+    DIST.mkdir(parents=True, exist_ok=True)
+    if IS_MACOS:
+        bundles = sorted(BUILD.glob("*.app"))
+        if not bundles:
+            raise SystemExit("Nuitka produced no .app bundle in " + str(BUILD))
+        target = DIST / (APP_NAME + ".app")
+        shutil.rmtree(target, ignore_errors=True)
+        shutil.move(str(bundles[0]), str(target))
+        return target, target / "Contents" / "MacOS"
+    target = DIST / APP_NAME
+    shutil.rmtree(target, ignore_errors=True)
+    shutil.move(str(BUILD / "main.dist"), str(target))
+    return target, target
 
 
 def copy_payload(target):
@@ -125,7 +176,7 @@ def copy_payload(target):
 
 def write_checksums(folder):
     lines = []
-    for path in sorted(p for p in folder.rglob("*") if p.is_file()):
+    for path in sorted(p for p in folder.rglob("*") if p.is_file() and not p.is_symlink()):
         if path.name == "SHA256SUMS.txt":
             continue
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -135,6 +186,13 @@ def write_checksums(folder):
 
 
 def make_zip(folder, archive):
+    archive.unlink(missing_ok=True)
+    if IS_MACOS and shutil.which("ditto"):
+        # ditto is the only thing that reliably keeps a bundle's symlinks,
+        # permissions and resource forks intact through a zip round trip.
+        run(["ditto", "-c", "-k", "--sequesterRsrc", "--keepParent",
+             str(folder), str(archive)])
+        return archive
     with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as bundle:
         for path in sorted(p for p in folder.rglob("*") if p.is_file()):
             arcname = (Path(folder.name) / path.relative_to(folder)).as_posix()
@@ -156,24 +214,23 @@ def main(argv=None):
                         help="also produce a single self-extracting executable")
     parser.add_argument("--skip-deps", action="store_true",
                         help="do not run tools/fetch_deps.py first")
-    parser.add_argument("--no-zip", action="store_true", help="skip the zip step")
+    parser.add_argument("--no-zip", action="store_true", help="skip the archive step")
     args = parser.parse_args(argv)
 
     version = app_version()
-    print(f"MinimalPDF Compress {version} for {PLATFORM}\n")
+    print(f"{DISPLAY_NAME} {version} for {PLATFORM}\n")
 
     ensure_dependencies(args.skip_deps)
 
+    icns = make_icns() if IS_MACOS else None
     shutil.rmtree(BUILD / "main.dist", ignore_errors=True)
-    run(nuitka_command(version, onefile=False))
+    for stale in BUILD.glob("*.app"):
+        shutil.rmtree(stale, ignore_errors=True)
+    run(nuitka_command(version, onefile=False, icns=icns))
 
-    DIST.mkdir(parents=True, exist_ok=True)
-    folder = DIST / APP_NAME
-    shutil.rmtree(folder, ignore_errors=True)
-    shutil.move(str(BUILD / "main.dist"), str(folder))
-
-    print("\nassembling folder build")
-    copy_payload(folder)
+    folder, payload_root = collect_output()
+    print("\nassembling " + folder.name)
+    copy_payload(payload_root)
     write_checksums(folder)
 
     if not args.no_zip:
@@ -182,7 +239,7 @@ def main(argv=None):
 
     if args.onefile:
         print("\nbuilding onefile (this variant is the one antivirus heuristics dislike)")
-        run(nuitka_command(version, onefile=True))
+        run(nuitka_command(version, onefile=True, icns=icns))
         produced = BUILD / (APP_NAME + EXE_SUFFIX)
         if produced.is_file():
             shutil.move(str(produced), str(DIST / (APP_NAME + EXE_SUFFIX)))

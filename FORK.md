@@ -236,9 +236,21 @@ the pipelines on the runner rather than by assuming:
 Windows arm64 is deliberately absent: Ghostscript publishes no arm64 Windows
 binary, and Windows on ARM runs the x86_64 build under emulation.
 
-What is still rough on macOS: the build is a plain folder, not a `.app` bundle,
-so there is no Dock icon, and the binary is unsigned and unnotarised, which
-means `xattr -dr com.apple.quarantine` before first run.
+The icon is now native on each platform, from one 256×256 source
+(`src/assets/icon.png`, extracted from the largest frame of `pdf.ico`):
+the `.ico` is embedded on Windows, `--linux-icon` on Linux, and on macOS the
+build generates a full `.icns` iconset with `sips` and `iconutil` — every size
+from 16×16 to 512×512@2x — for the bundle. At runtime `iconphoto()` sets the
+window icon from the PNG on all three.
+
+macOS gets a real `MinimalPDF_Compress.app` bundle, with the bundled tools in
+`Contents/MacOS` beside the executable, which is where `app_dir()` looks. The
+archive is made with `ditto` rather than Python's `zipfile`, because that is
+the only thing that reliably carries a bundle's symlinks, permissions and
+resource forks through a zip round trip.
+
+What is still rough on macOS: the app is unsigned and unnotarised, so first run
+needs `xattr -dr com.apple.quarantine MinimalPDF_Compress.app`.
 
 ## 6. Files added
 
