@@ -76,7 +76,8 @@
         },
         {
           "from": "Resource",
-          "to": "Resource"
+          "to": "Resource",
+          "optional": true
         },
         {
           "from": "iccprofiles",
@@ -109,7 +110,8 @@
         },
         {
           "from": "Resource",
-          "to": "Resource"
+          "to": "Resource",
+          "optional": true
         },
         {
           "from": "iccprofiles",
@@ -142,7 +144,8 @@
         },
         {
           "from": "Resource",
-          "to": "Resource"
+          "to": "Resource",
+          "optional": true
         },
         {
           "from": "iccprofiles",
@@ -175,7 +178,8 @@
         },
         {
           "from": "Resource",
-          "to": "Resource"
+          "to": "Resource",
+          "optional": true
         },
         {
           "from": "iccprofiles",

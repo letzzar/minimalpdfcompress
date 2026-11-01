@@ -171,30 +171,31 @@ def build_ghostscript(source, workdir):
                 tail = log.read_text(encoding="utf-8", errors="ignore").splitlines()[-40:]
                 raise SystemExit("Ghostscript build failed:\n  " + "\n  ".join(tail))
 
-    # Normalise the install tree. Where Ghostscript puts its resources under
-    # --prefix varies between versions and platforms, so rather than guess at a
-    # path, locate the one file gs cannot start without and work back from it.
-    init = next(stage.rglob("Resource/Init/gs_init.ps"), None)
-    if init is None:
-        raise SystemExit(
-            "Ghostscript compiled but Resource/Init/gs_init.ps is not in the install "
-            "tree. Contents of " + str(stage) + ":\n  "
-            + "\n  ".join(sorted(str(p.relative_to(stage)) for p in stage.rglob("*") if p.is_dir())[:40])
-        )
-    resource_root = init.parents[2]
+    # Normalise the install tree into fixed paths, so the manifest does not
+    # have to track where a given Ghostscript version puts things.
     binary = next((p for p in stage.rglob("bin/gs") if p.is_file()), None)
     if binary is None:
-        raise SystemExit("Ghostscript compiled but no bin/gs in " + str(stage))
-    print(f"    resources: {resource_root.relative_to(stage)}")
-
+        raise SystemExit(
+            "Ghostscript compiled but no bin/gs in " + str(stage) + ". Installed:\n  "
+            + "\n  ".join(sorted(str(p.relative_to(stage))
+                                 for p in stage.rglob("*") if p.is_dir())[:40])
+        )
     normalised = workdir / "normalised"
     (normalised / "bin").mkdir(parents=True, exist_ok=True)
     shutil.copy2(binary, normalised / "bin" / "gs")
-    for name in ("Resource", "iccprofiles", "lib"):
-        source_dir = resource_root / name
-        if source_dir.is_dir():
-            shutil.copytree(source_dir, normalised / name, dirs_exist_ok=True)
-            print(f"    bundling {name}/")
+
+    # Ghostscript compiles its init files and fonts into the executable by
+    # default (COMPILE_INITS), so "make install" legitimately lays down no
+    # Resource tree at all and gs still starts. Take whatever it did install.
+    copied = []
+    for root in sorted(stage.glob("share/ghostscript/*")):
+        for name in ("Resource", "iccprofiles", "lib"):
+            source_dir = root / name
+            if source_dir.is_dir():
+                shutil.copytree(source_dir, normalised / name, dirs_exist_ok=True)
+                copied.append(name)
+    print("    bundled bin/gs" + (f" plus {', '.join(copied)}/" if copied
+                                  else " (resources are compiled into the binary)"))
     return normalised
 
 
