@@ -558,7 +558,10 @@ class GhostscriptGUI:
         return toggle
 
     def _create_checkbutton(self, parent, text, variable, tooltip_key, command=None, layout='pack', **layout_kwargs):
-        cb = ttk.Checkbutton(parent, text=t(text), variable=variable, command=command)
+        # Same widget as _create_toggle: raw clam checkbuttons sitting beside
+        # the custom toggles were the most visible inconsistency in the window,
+        # and the two helpers already take identical arguments.
+        cb = ModernToggle(parent, text=t(text), variable=variable, command=command, palette=self.palette)
         if layout == 'pack': cb.pack(**layout_kwargs)
         else: cb.grid(**layout_kwargs)
         if tooltip_key: Tooltip(cb, tooltip(tooltip_key))
@@ -608,7 +611,10 @@ class GhostscriptGUI:
         io_frame = ttk.Frame(parent, style="Card.TFrame", padding=20)
         io_frame.grid(row=0, column=0, sticky="nsew", pady=(0, 10))
         io_frame.columnconfigure(0, weight=1)
-        io_frame.rowconfigure(1, weight=1)
+        # The file list used to take every spare pixel of height, so on a
+        # maximised window half the screen was an empty table. It keeps its
+        # natural height now and the window breathes instead.
+        io_frame.rowconfigure(1, weight=0)
 
         self.drop_zones['compress'] = DropZone(io_frame, height=150, browse_file_cmd=self.browse_files_compress, browse_folder_cmd=self.browse_folder_compress, palette=self.palette)
         self.drop_zones['compress'].grid(row=0, column=0, sticky="nsew", pady=(0,15))
@@ -653,8 +659,11 @@ class GhostscriptGUI:
 
         control_panel = ttk.Frame(parent, style="Card.TFrame", padding=20)
         control_panel.grid(row=2, column=0, sticky="nsew", pady=10)
-        control_panel.columnconfigure(0, weight=1, minsize=200)
-        control_panel.columnconfigure(1, weight=2, minsize=300)
+        # The gauge is a fixed-size drawing: giving its column a weight handed
+        # it a third of a wide window to sit alone in. The options take the
+        # slack instead.
+        control_panel.columnconfigure(0, weight=0, minsize=240)
+        control_panel.columnconfigure(1, weight=1, minsize=300)
         control_panel.rowconfigure(0, weight=1)
 
         gauge_frame = ttk.Frame(control_panel, style="Card.TFrame")

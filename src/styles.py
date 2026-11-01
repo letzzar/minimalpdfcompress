@@ -120,8 +120,12 @@ def apply_theme(root, mode='dark'):
               fieldbackground=[('readonly', colors["ELEVATED"])],
               foreground=[('readonly', colors["TEXT"])])
 
+    # clam frames the trough with light/dark edges that borderwidth alone does
+    # not silence, which left two outlined empty bars under the slider.
     style.configure('TProgressbar', relief='flat', pbarrelief='flat', borderwidth=0, thickness=6,
-                    troughcolor=colors["ELEVATED"], background=colors["ACCENT"])
+                    troughcolor=colors["ELEVATED"], background=colors["ACCENT"],
+                    bordercolor=colors["ELEVATED"], lightcolor=colors["ELEVATED"],
+                    darkcolor=colors["ELEVATED"])
     style.layout('TProgressbar', [('Progressbar.trough', {'children': [('Progressbar.pbar', {'sticky': 'nswe'})], 'sticky': 'nswe'})])
 
     # Tabs: no box around the selected one, just accent text.
