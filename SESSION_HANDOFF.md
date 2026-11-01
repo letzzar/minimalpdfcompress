@@ -8,9 +8,10 @@ Estado al final de la última sesión. Leer al empezar, actualizar al terminar.
 
 El fork está publicado y funcionando en las cinco plataformas. La última
 release es
-[v1.10.0-fork.3](https://github.com/letzzar/minimalpdfcompress/releases/tag/v1.10.0-fork.3)
+[v1.10.0-fork.4](https://github.com/letzzar/minimalpdfcompress/releases/tag/v1.10.0-fork.4)
 con ocho archivos: instalador de Windows, `.deb` para amd64 y arm64, y los cinco
-portables. Todos con attestation firmada, verificada por hash.
+portables. Todos con attestation firmada. Es la primera con la interfaz en
+español.
 
 El Director ha probado a mano Windows, macOS y Raspberry Pi: funcionan.
 
@@ -50,7 +51,11 @@ Nada a medias.
 - El selector de idioma no se ha probado pulsándolo: se ha verificado que el
   valor persiste y que la app arranca en ambos idiomas, pero el diálogo de
   "hay que reiniciar" no lo ha visto nadie todavía.
-- Publicar una versión con la traducción; la última release es anterior.
+- `pngquant.org` es el único host del manifiesto que no es GitHub y ya ha
+  fallado dos veces. Ahora la build sobrevive, pero si vuelve a caer el
+  ejecutable no irá en el paquete de Windows y nadie lo notará salvo por el
+  aviso en el log. Convendría buscarle un espejo estable.
+- El instalador de Windows nunca se ha medido en VirusTotal.
 - Firma de código: lo único que queda para la última detección de antivirus.
 - El instalador no se ha medido en VirusTotal.
 - `src/dependencies/pdf.ico` no lo referencia nada; anotado, no borrado.
