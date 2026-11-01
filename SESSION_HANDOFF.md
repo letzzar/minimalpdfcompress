@@ -51,7 +51,17 @@ Nada a medias.
 - El selector de idioma no se ha probado pulsándolo: se ha verificado que el
   valor persiste y que la app arranca en ambos idiomas, pero el diálogo de
   "hay que reiniciar" no lo ha visto nadie todavía.
-- **Modernizar la interfaz.** Es lo único que queda del encargo del Director.
+- **Modernizar la interfaz: primera pasada hecha, falta repasar pestañas.**
+  Hechos el tema, la disposición de Comprimir, las pestañas sin recuadro y los
+  interruptores. Sin revisar una a una las diez pestañas de utilidades que no
+  son Unir: Dividir, Rotar, Borrar páginas, Contraseña, Sello, Encabezado,
+  Índice, Metadatos, PDF a imagen y Reparar.
+- El título «Advanced Settings» sigue siendo un `LabelFrame` y queda fuera de
+  su tarjeta, pequeño y con contorno. Hay que sustituirlo por una tarjeta con
+  cabecera como las demás.
+- Hay un arnés de captura en el scratchpad (`capture.ps1` y `run_tab.py`) que
+  lanza la app con una pestaña concreta y la fotografía. No está en el repo;
+  si va a hacer falta más, merece la pena moverlo a `tools/`.
 - `jpegoptim` es la única herramienta que el README sigue pidiendo instalar a
   mano fuera de Windows.
 - Firma de código: lo único que queda para la última detección de antivirus.

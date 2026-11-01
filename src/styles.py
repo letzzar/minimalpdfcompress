@@ -42,6 +42,56 @@ FONT_BODY = 10
 FONT_SMALL = 9
 
 
+# Tk keeps no reference to images handed to a style element, so they have to
+# be kept alive here or the switches turn into blank gaps.
+_TOGGLE_IMAGES = {}
+
+
+def _build_switch(style, colors, mode):
+    """Draw an on/off pill and register it as a checkbutton indicator.
+
+    ttk offers no switch, and clam's square indicator looked nothing like the
+    rest of the window. Drawing it at 4x and scaling down gives clean edges
+    without shipping an image file per theme.
+    """
+    from PIL import Image, ImageDraw, ImageTk
+
+    scale, width, height, pad = 4, 34, 18, 2
+    gap = 8
+    knob = height - pad * 2
+    images = {}
+    for state, track, dot, left in (
+        ("off", colors["ELEVATED"], colors["MUTED"], pad),
+        ("on", colors["ACCENT"], "#ffffff", width - pad - knob),
+    ):
+        canvas = Image.new("RGBA", ((width + gap) * scale, height * scale), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(canvas)
+        draw.rounded_rectangle([0, 0, width * scale - 1, height * scale - 1],
+                               radius=height * scale // 2, fill=track)
+        draw.ellipse([left * scale, pad * scale,
+                      (left + knob) * scale, (pad + knob) * scale], fill=dot)
+        images[state] = ImageTk.PhotoImage(
+            canvas.resize((width + gap, height), Image.LANCZOS))
+    _TOGGLE_IMAGES[mode] = images
+
+    # The element name carries the mode: element_create refuses to redefine a
+    # name, and the theme is reapplied every time the user switches light/dark.
+    element = f"switch_{mode}.indicator"
+    if element not in style.element_names():
+        style.element_create(element, "image", images["off"],
+                             ("selected", images["on"]), border=0, sticky="")
+    style.layout("Switch.TCheckbutton", [
+        ("Checkbutton.padding", {"sticky": "nswe", "children": [
+            (element, {"side": "left", "sticky": ""}),
+            ("Checkbutton.label", {"side": "left", "sticky": "w"})]})])
+    style.configure("Switch.TCheckbutton", background=colors["WIDGET_BG"],
+                    foreground=colors["TEXT"], padding=(0, 5),
+                    font=(FONT_FAMILY, FONT_BODY))
+    style.map("Switch.TCheckbutton",
+              background=[("active", colors["WIDGET_BG"])],
+              foreground=[("disabled", colors["DISABLED"])])
+
+
 def apply_theme(root, mode='dark'):
     style = ttk.Style(root)
     colors = PALETTES.get(mode, PALETTES['dark'])
@@ -130,8 +180,16 @@ def apply_theme(root, mode='dark'):
 
     # Tabs: no box around the selected one, just accent text.
     style.configure('TNotebook', background=colors["BG"], borderwidth=0, tabmargins=(2, 4, 2, 0))
+    # clam outlines each tab with the Notebook.tab element, and no colour
+    # option silences it. With eleven utility tabs in a row that reads as a
+    # grid of boxes, so the element is dropped: the selected tab is already
+    # distinguished by its accent colour, not by a frame around it.
+    style.layout('TNotebook.Tab', [
+        ('Notebook.padding', {'side': 'top', 'sticky': 'nswe', 'children': [
+            ('Notebook.label', {'side': 'top', 'sticky': ''})]})])
     style.configure('TNotebook.Tab', background=colors["BG"], foreground=colors["MUTED"],
-                    padding=[16, 9], borderwidth=0, font=(FONT_FAMILY, FONT_BODY, 'bold'))
+                    padding=[16, 9], borderwidth=0, font=(FONT_FAMILY, FONT_BODY, 'bold'),
+                    bordercolor=colors["BG"], lightcolor=colors["BG"], darkcolor=colors["BG"])
     style.map('TNotebook.Tab',
               background=[('selected', colors["BG"]), ('active', colors["BG"])],
               foreground=[('selected', colors["ACCENT"]), ('active', colors["TEXT"])],
@@ -187,6 +245,12 @@ def apply_theme(root, mode='dark'):
     style.configure('Vertical.TScrollbar', background=colors["SCROLL_THUMB"], troughcolor=colors["BG"],
                     borderwidth=0, arrowsize=12, arrowcolor=colors["MUTED"])
     style.map('Vertical.TScrollbar', background=[('active', colors["SCROLL_THUMB_HOVER"])])
+
+    try:
+        _build_switch(style, colors, mode)
+    except Exception as exc:
+        # A missing Pillow or an odd Tk build must not cost the whole theme.
+        logging.warning(f"Could not build the switch indicator: {exc}")
 
     root.option_add('*TCombobox*Listbox.background', colors["ELEVATED"])
     root.option_add('*TCombobox*Listbox.foreground', colors["TEXT"])

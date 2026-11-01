@@ -156,6 +156,9 @@ class FileSelector(ttk.Frame):
 class ModernToggle(ttk.Checkbutton):
     def __init__(self, parent, text, variable, palette, command=None, **kwargs):
         self.palette = palette
+        # styles.py registers this with a drawn pill indicator; it falls back
+        # to the default checkbutton look if that could not be built.
+        kwargs.setdefault("style", "Switch.TCheckbutton")
         super().__init__(parent, text=text, variable=variable, command=command, **kwargs)
 
     def update_colors(self, palette):
