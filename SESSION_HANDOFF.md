@@ -52,12 +52,30 @@ Nada a medias.
   valor persiste y que la app arranca en ambos idiomas, pero el diálogo de
   "hay que reiniciar" no lo ha visto nadie todavía.
 - **Modernizar la interfaz.** Próximo objetivo pedido por el Director.
-- **El icono sale con un marco negro alrededor.** Reportado por el Director el
-  2026-11-01, sin diagnosticar todavía. Sospecha inicial: `iconphoto()` recibe
-  un PNG RGBA y Tk rellena de negro donde hay alfa, en vez de respetar la
-  transparencia. Afecta al icono nuevo de `src/assets/icon.png`; hay que mirar
-  si pasa en las tres plataformas o sólo en Windows, donde además se aplica el
-  `.ico` por encima.
+- **El icono sale con un marco negro alrededor. Ya diagnosticado.**
+
+  Mi primera sospecha (que Tk rellenaba de negro el canal alfa) era **falsa**.
+  Medido con Pillow: **ninguna imagen del proyecto tiene transparencia.**
+
+  | Origen | Frames | Píxeles con alfa=0 |
+  |---|---|---|
+  | `src/pdf.ico` | 16, 24, 32, 48, 64, 256 | 0 % en todos |
+  | `src/dependencies/pdf.ico` | 16 … 256 | 0 % en todos |
+  | `assets/pdf.png`, `pdf1.png` | 512 | 0 % |
+
+  Las esquinas son `(0,0,0,255)`: negro **opaco**. El fondo negro viene
+  horneado en el arte original de upstream, no lo introduce el código. Lo que
+  sí cambió es que `iconphoto()` ahora pone también el icono de la barra de
+  tareas, donde se nota mucho más que en la barra de título.
+
+  No lo arreglo por mi cuenta porque hace falta decidir, y es decisión del
+  Director:
+  1. Recortar el fondo por color desde las esquinas, con tolerancia. Barato,
+     pero se comería las partes negras del propio logotipo si las toca.
+  2. Arte nuevo con fondo transparente. Es lo correcto y da buen resultado en
+     los tres sistemas, pero hay que hacerlo.
+
+  Encaja con «modernizar la interfaz»: conviene resolverlo junto con eso.
 - `jpegoptim` es la única herramienta que el README sigue pidiendo instalar a
   mano fuera de Windows.
 - Firma de código: lo único que queda para la última detección de antivirus.
