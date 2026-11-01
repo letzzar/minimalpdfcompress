@@ -166,7 +166,7 @@ in standalone mode, assembles the folder, writes `SHA256SUMS.txt` and zips the
 result into `dist/`.
 
 It detects the host platform and names the archive accordingly, for example
-`MinimalPDF_Compress-1.10.0-linux-aarch64.zip`. Cross-compiling is not
+`MinimalPDF_Compress-1.11.0-linux-aarch64.zip`. Cross-compiling is not
 supported: each platform is built on itself, which is what the CI matrix does.
 
 ```bash

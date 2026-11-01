@@ -40,7 +40,7 @@ AppPublisher={#AppPublisher}
 AppPublisherURL={#AppURL}
 AppSupportURL={#AppURL}/issues
 AppUpdatesURL={#AppURL}/releases
-VersionInfoVersion=1.10.0.0
+VersionInfoVersion={#AppVersion}.0
 VersionInfoDescription={#AppName} installer
 
 PrivilegesRequired=lowest

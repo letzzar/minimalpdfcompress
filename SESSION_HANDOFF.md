@@ -15,12 +15,15 @@ español.
 
 El Director ha probado a mano Windows, macOS y Raspberry Pi: funcionan.
 
-**Hay trece commits en `main` por encima de esa etiqueta y sin publicar**: el
+**Hay quince commits en `main` por encima de esa etiqueta y sin publicar**: el
 icono sin marco negro, `jpegoptim` empaquetado en Linux y macOS, `pngquant`
 compilado desde crates.io y toda la modernización de la interfaz. Nada de eso
-ha llegado todavía a una release; el siguiente `v1.10.0-fork.5` lo arrastra
-todo. Y nada de ello se ha visto fuera de Windows: la interfaz nueva sólo se ha
-fotografiado aquí.
+ha llegado todavía a una release. Y nada de ello se ha visto fuera de Windows:
+la interfaz nueva sólo se ha fotografiado aquí.
+
+`APP_VERSION` es **`1.11.0`** desde el 2026-11-01, por decisión del Director,
+así que la próxima etiqueta es `v1.11.0-fork.1`. El `VersionInfoVersion` del
+instalador estaba clavado a mano en `1.10.0.0` y ahora sale de `AppVersion`.
 
 ## Completado
 
@@ -59,6 +62,30 @@ fotografiado aquí.
   título en tamaño de texto normal, lo que descolocaba las tres secciones de
   Contraseña y «Advanced Settings». Dividir, Índice, Metadatos, PDF a imagen y
   Reparar ya estaban bien y no se tocaron.
+- **Un solo deslizador en toda la aplicación.** Quedaban tres `ttk.Scale`
+  (escala y opacidad del sello, DPI de PDF a imagen) que `clam` dibujaba como
+  una barra con contorno azul y un pulgar rayado en medio; ese era el recuadro
+  que se veía en la hoja de contacto. Ahora los cinco son `CustomSlider`.
+  Hubo que enseñarle a respetar `DoubleVar`: redondeaba a entero, lo que en la
+  opacidad (0,1–1,0) la habría dejado pegada a los extremos.
+- **Fuera la regla pálida bajo cada tira de pestañas.** `borderwidth=0` no
+  llega al área de cliente del `Notebook`; el borde lo pintan `bordercolor`,
+  `lightcolor` y `darkcolor`.
+- **Los textos que se quedaban en inglés, traducidos.** `FileSelector` y
+  `DropZone` nunca pasaron por `t()`, así que «Input», «Output», «Drag & Drop
+  PDF File or Folder Here», «Select File(s)» y «Select Folder» salían en
+  inglés en toda la aplicación, y con ellos las cabeceras «File Name»,
+  «Pages» y «Size» de las dos listas y el título del selector de color. Un
+  barrido por AST (`find_untranslated.py`, en el scratchpad) confirma que ya
+  no queda ningún literal visible sin traducir.
+- **Cuatro ayudas que no existían.** `gui.py` pedía `drop_zone_compress`,
+  `compress_tree`, `compress_add_btn` y `compress_remove_btn`, que no estaban
+  en el catálogo; `tooltip()` devolvía `None` y `Tooltip` no muestra nada si
+  el texto es vacío, así que los cuatro controles más usados de Comprimir no
+  tenían ayuda. Viene de upstream.
+- **El `DropZone` pedía «Segoe UI» a pelo**, saltándose `styles.FONT_FAMILY`,
+  que es «Helvetica» en macOS y «DejaVu Sans» en Linux. Allí Tk caía a la
+  fuente por defecto sin avisar.
 
 ## En curso
 
@@ -71,15 +98,18 @@ Nada a medias.
 - El selector de idioma no se ha probado pulsándolo: se ha verificado que el
   valor persiste y que la app arranca en ambos idiomas, pero el diálogo de
   "hay que reiniciar" no lo ha visto nadie todavía.
-- En la hoja de contacto de PDF a imagen el deslizador de resolución (DPI)
-  parecía llevar recuadro. Puede ser cosa de la escala a la que se miró la
-  miniatura; no se ha vuelto a capturar esa pestaña después de aplanar
-  `TLabelframe`, así que está sin confirmar en un sentido ni en otro.
-- Hay un arnés de captura en el scratchpad (`capture.ps1`, `run_tab.py`,
-  `sweep.ps1` y `montage.py`): lanza la app con una pestaña concreta, la
-  fotografía en el monitor donde esté la ventana y monta hojas de contacto. No
-  está en el repo; si va a hacer falta más trabajo visual, merece la pena
-  moverlo a `tools/`.
+- Dos píxeles blancos en las esquinas izquierdas del campo «Entrada», que es
+  el único `Entry` de sólo lectura. No son del estado `readonly`: mapear
+  `bordercolor`, `lightcolor` y `darkcolor` para ese estado no los quita, así
+  que los pinta `Entry.field` de `clam` por su cuenta. Se verían obligados a
+  cambiar el `layout` del `Entry`, que es el elemento que da el fondo. A 100 %
+  no se aprecian; se dejan.
+- El arnés de captura sigue en el scratchpad (`capture.ps1`, `run_tab.py`,
+  `sweep.ps1`, `montage.py` y `crop.py`): lanza la app con una pestaña
+  concreta, la fotografía en el monitor donde esté la ventana y monta hojas de
+  contacto. No está en el repo porque sólo sirve en Windows y necesita ojo
+  humano para interpretar el resultado. Lo que sí se ha quedado es
+  `tools/check_strings.py`, que no abre ventana.
 - `AUDITORIA-v1.9.7.md` sigue sin versionar en la raíz del proyecto. Es el
   informe del falso positivo con el que empezó todo esto; hay que decidir si
   entra al repo, se mueve a `docs/` o se queda fuera.
@@ -109,8 +139,8 @@ Nada a medias.
   pueden obtener, se avisa y se sigue. Un hash que no cuadra sigue siendo fatal
   siempre, y por eso va por una excepción distinta.
 
-- `APP_VERSION` se queda en `"1.10.0"`. El número de build del fork va en la
-  etiqueta. No volver a proponerlo.
+- `APP_VERSION` lo sube el Director y nadie más. Está en `"1.11.0"`. El número
+  de build del fork sigue yendo en la etiqueta, nunca dentro de `APP_VERSION`.
 - Cambiar de idioma pide reiniciar; no se reconstruye la interfaz en caliente,
   porque perdería los archivos en cola y las vistas previas.
 - El catálogo se indexa por la cadena inglesa, no por identificadores

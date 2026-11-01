@@ -87,7 +87,7 @@ función de trabajo en `backend.py`.
 | Dependencias de terceros | `tools/fetch_deps.py` ← `tools/deps.lock.json` |
 | Compilar | `build.py` (Nuitka, **standalone**, `.app` en macOS) |
 | Instalador | `tools/package.py` → Inno Setup (`.exe`) o `dpkg-deb` (`.deb`) |
-| Publicar | etiqueta `v1.10.0-fork.N` → `.github/workflows/build.yml` |
+| Publicar | etiqueta `v1.11.0-fork.N` → `.github/workflows/build.yml` |
 
 CI construye cinco objetivos: `windows-x86_64`, `linux-x86_64`,
 `linux-aarch64`, `macos-x86_64`, `macos-aarch64`. Ghostscript se compila desde
@@ -97,8 +97,9 @@ fuente en los cuatro que no son Windows.
 
 Lo que hay que tener presente antes de prometer nada:
 
-- **No hay suite de pruebas unitarias.** `tools/smoke_test.py` es la única red, y
-  cubre cinco trabajos de compresión. **Las once pestañas de utilidades no
+- **No hay suite de pruebas unitarias.** `tools/smoke_test.py` cubre cinco
+  trabajos de compresión y `tools/check_strings.py` revisa los textos de la
+  interfaz sin abrir ventana. **Las once pestañas de utilidades no
   tienen ninguna cobertura automática**: merge, split, rotate, delete, password,
   stamp, cabecera/pie, índice, metadatos, PDF a imagen y reparación se verifican
   sólo a mano. Es la carencia más seria del proyecto.

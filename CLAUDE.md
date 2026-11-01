@@ -85,14 +85,17 @@ Comandos habituales:
 - Descargar los binarios de terceros: `python tools/fetch_deps.py`
 - Ejecutar en desarrollo: `python src/main.py`
 - Pruebas: `python tools/smoke_test.py` (**no hay suite unittest**; ver `PROYECTO.md`)
+- Revisar los textos: `python tools/check_strings.py` (sin ventana; cadenas
+  visibles sin `t()`, claves de ayuda inexistentes y catálogos descuadrados)
 - Generar el ejecutable: `python build.py` → `dist\`
 - Generar el instalador: `python tools/package.py` → `.exe` en Windows, `.deb` en Linux
-- Publicar versión: etiqueta `v1.10.0-fork.N` → GitHub Actions compila Windows,
+- Publicar versión: etiqueta `v1.11.0-fork.N` → GitHub Actions compila Windows,
   macOS y Linux en x86-64 y arm64, y crea la Release con attestation firmada.
 
-`APP_VERSION` en `src/constants.py` se queda en `"1.10.0"`: el número de build
-del fork va en la etiqueta, no en la versión de la aplicación. Decisión tomada;
-no volver a proponer el cambio.
+`APP_VERSION` en `src/constants.py` lo sube el Director, y sólo él: vale
+`"1.11.0"` desde el 2026-11-01. El número de build del fork va siempre en la
+etiqueta, nunca dentro de `APP_VERSION`; esa parte no se vuelve a proponer.
+`VersionInfoVersion` del instalador sale de ahí, así que no hay que tocarlo.
 
 ## 6. Instrucción del proyecto
 
