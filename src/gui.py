@@ -588,7 +588,8 @@ class GhostscriptGUI:
         preview_frame = ttk.Frame(main_card, style="Card.TFrame")
         preview_frame.grid(row=0, column=1, sticky="nsew", rowspan=preview_rowspan)
         preview_frame.rowconfigure(0, weight=1); preview_frame.columnconfigure(0, weight=1)
-        canvas = tk.Canvas(preview_frame, highlightthickness=1)
+        # Was 1, which outlined an empty box on every tab that has a preview.
+        canvas = tk.Canvas(preview_frame, highlightthickness=0)
         canvas.grid(row=0, column=0, sticky="nsew")
 
         return main_card, left_panel, canvas

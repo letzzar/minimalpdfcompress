@@ -190,10 +190,23 @@ def apply_theme(root, mode='dark'):
     style.configure('TNotebook.Tab', background=colors["BG"], foreground=colors["MUTED"],
                     padding=[16, 9], borderwidth=0, font=(FONT_FAMILY, FONT_BODY, 'bold'),
                     bordercolor=colors["BG"], lightcolor=colors["BG"], darkcolor=colors["BG"])
+    # clam nudges the selected tab down and outwards to fake a raised sheet.
+    # With the border gone that just looks like a misaligned label, so padding
+    # and expansion are pinned identical in every state: the selected tab stays
+    # on the same baseline and is told apart by its accent colour alone.
     style.map('TNotebook.Tab',
               background=[('selected', colors["BG"]), ('active', colors["BG"])],
               foreground=[('selected', colors["ACCENT"]), ('active', colors["TEXT"])],
-              expand=[('selected', [0, 0, 0, 0])])
+              padding=[('selected', [16, 9]), ('active', [16, 9]), ('!selected', [16, 9])],
+              expand=[('selected', [0, 0, 0, 0]), ('active', [0, 0, 0, 0])])
+
+    # LabelFrame came with a groove and a caption in body size, so the
+    # password sections and Advanced Settings looked like a different app.
+    style.configure('TLabelframe', background=colors["WIDGET_BG"], borderwidth=0, relief='flat',
+                    bordercolor=colors["WIDGET_BG"], lightcolor=colors["WIDGET_BG"],
+                    darkcolor=colors["WIDGET_BG"], padding=12)
+    style.configure('TLabelframe.Label', background=colors["WIDGET_BG"], foreground=colors["TEXT"],
+                    font=(FONT_FAMILY, FONT_HEADING, 'bold'))
 
     style.configure('Horizontal.TScale', background=colors["WIDGET_BG"], troughcolor=colors["ELEVATED"],
                     sliderrelief='flat', sliderlength=18, borderwidth=0)
