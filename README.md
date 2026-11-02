@@ -50,6 +50,12 @@ Two things, documented in full in **[FORK.md](FORK.md)**:
 From [Releases](../../releases). Installers for Windows and Debian-based Linux,
 portable archives for everything.
 
+**On Windows, prefer the installer** — not only for the Start menu entry. The
+installer is the artefact antivirus engines are happiest with: in the 1.11.0
+measurement no engine flagged it, while the bare `.exe` and the zip around it
+each drew one machine-learning hit from Microsoft, for the identical bytes.
+[FORK.md](FORK.md) has the numbers.
+
 | Platform | Installer | What it does |
 |---|---|---|
 | Windows x86_64 | `…-windows-x86_64-setup.exe` | Asks **before** anything is elevated whether to install for you only or for all users. Choosing yourself installs to `%LOCALAPPDATA%\Programs` and never prompts for admin; choosing all users installs to `Program Files` and asks for admin only at that point. |
@@ -104,15 +110,18 @@ Releases are built by GitHub Actions and carry a signed provenance attestation
 tying the zip to the exact commit and workflow that produced it:
 
 ```bash
-gh attestation verify MinimalPDF_Compress-<version>-win64.zip --repo <owner>/<repo>
+gh attestation verify MinimalPDF_Compress-<version>-windows-x86_64.zip --repo <owner>/<repo>
 ```
 
 Each build also ships `SHA256SUMS.txt` listing every file inside it.
 
-> **Note on antivirus.** The binary is unsigned, so some engines may still warn.
-> [FORK.md](FORK.md) explains exactly what the detections are and how to read
-> them. If something does not add up, do not run it — rebuild from source with
-> the steps below and compare.
+> **Note on antivirus.** The binary is unsigned, so some engines still warn. As
+> of 1.11.0 exactly one does: Microsoft returns `Wacatac.C!ml` on the `.exe`,
+> and on the zip through the `.exe` inside it. `!ml` marks it as a
+> machine-learning guess rather than a match on anything known, and the same
+> bytes inside the installer pass clean. [FORK.md](FORK.md) has the full
+> numbers. If something does not add up, do not run it — rebuild from source
+> with the steps below and compare.
 
 ## Features
 

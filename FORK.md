@@ -89,9 +89,9 @@ bytes — which is why the installer is the artefact to recommend on Windows.
 The executable needed no upload: VirusTotal unpacks installers and scans what
 is inside, so submitting the installer measured it too.
 
-The single remaining hit on the executable is Microsoft,
-`Trojan:Win32/Wacatac.C!ml` — a machine-learning signature, which is what an
-unsigned binary attracts. On the zip the only hit is Zillya,
+In the 1.10.0 measurement above, the single remaining hit on the executable is
+Microsoft, `Trojan:Win32/Wacatac.C!ml` — the same verdict 1.11.0 draws. On the
+1.10.0 zip the only hit is Zillya,
 `Trojan.AgentAGen.Win64.25905`, and Microsoft is clean there.
 
 The installer scores the same 1/68, and its one hit is DeepInstinct with a
@@ -108,8 +108,46 @@ Rising, GData and Arcabit.
 
 Windows Defender on a real endpoint, engine 1.1.26100.4 with signatures
 1.463.63.0 and real-time protection on, scans the whole 120 MB build folder
-clean: `found no threats`. Note this disagrees with Microsoft's VirusTotal
-engine, which runs without the cloud and reputation context an endpoint has.
+clean: `found no threats`. Repeated on 2026-11-02 against the 1.11.0
+executable with signatures 1.463.84.0: `found no threats` again. Note this
+disagrees with Microsoft's VirusTotal engine, which runs without the cloud and
+reputation context an endpoint has.
+
+### What actually triggers the Microsoft verdict
+
+Nothing in this application. That is not an opinion; it was measured with a
+control.
+
+A hello-world — one Tkinter window with one label, no imports beyond `tkinter`,
+none of this project's code, no bundled tools, no icon — was compiled with the
+identical toolchain: Nuitka 4.3.3, `--standalone`, `--enable-plugin=tk-inter`,
+`--windows-console-mode=disable`, CPython 3.13. 5.25 MB,
+`bdd1cb4b1c…`. VirusTotal's verdict on it:
+
+| Binary | Microsoft | Everything else |
+|---|---|---|
+| MinimalPDF Compress 1.11.0 `.exe`, 17.4 MB | `Trojan:Win32/Wacatac.C!ml` | clean |
+| hello-world, 5.25 MB, same toolchain | `Trojan:Win32/Wacatac.C!ml` | McAfeeD `ti!BDD1CB4B1C53` |
+
+The same family, from the same engine, on a binary that does nothing. The
+control scores *worse* than the real application — McAfeeD adds a hash-prefix
+verdict, which is what an unknown new file gets. So the trigger is the shape of
+a Nuitka standalone binary that nobody has signed, and no amount of changing
+this project's code will move it.
+
+The rest of VirusTotal's own data on our executable says the same thing: no
+public YARA rule matches, no Sigma rule, no IDS rule, no packer detected, and
+code-section entropy of 6.32 and 5.57 — a packed or encrypted binary, which is
+what the Wacatac family describes, would be above 7.9. It imports ten DLLs, all
+of them the C runtime and `python313.dll`: no networking, no cryptography, no
+process-injection APIs. No sandbox executed it. There is no concrete finding
+behind the verdict; `!ml` says as much, since it marks a model's guess about
+file structure rather than a match on anything known.
+
+This is a well-documented pattern rather than something peculiar to this
+project. Wacatac is Defender's catch-all for executables that look packed, and
+Python-to-executable compilers produce exactly that silhouette: a large binary
+whose bulk is an embedded interpreter and its libraries.
 
 What this still does **not** promise: an unsigned binary keeps attracting
 machine-learning verdicts, and SmartScreen reputation is a separate layer that
@@ -321,7 +359,11 @@ packaging/                    Inno Setup installer and .deb metadata
 The right channels, in order:
 
 1. Microsoft Defender: <https://www.microsoft.com/en-us/wdsi/filesubmission>,
-   as "Software developer", with the file hash.
+   as "Software developer", with the file hash. Include the control-binary
+   result above: a hello-world built with the same toolchain draws the same
+   `Wacatac.C!ml`, which shows the verdict is about Nuitka's output shape and
+   not about this application. Microsoft has cleared this kind of submission in
+   hours for other projects.
 2. The other engines' individual false-positive forms.
 3. Upstream issue [#50](https://github.com/deminimis/minimalpdfcompress/issues/50),
    which is already open and tracking this.

@@ -121,6 +121,14 @@ Nada a medias.
 - Firma de código: sigue sin hacerse. Es lo que de verdad termina con las
   heurísticas de aprendizaje automático y con SmartScreen, que es una capa
   aparte y sólo se gana a base de descargas.
+- **Qué dispara la detección de Microsoft: medido, no supuesto.** Un
+  hola-mundo de Tkinter compilado con la misma cadena (Nuitka 4.3.3,
+  `--standalone`, plugin de tk, Python 3.13) y sin una línea de nuestro código
+  saca exactamente el mismo `Trojan:Win32/Wacatac.C!ml`, y encima suma a
+  McAfeeD. Es la forma del binario que produce Nuitka, sin firmar; no hay nada
+  que tocar en el proyecto que lo cambie. El detalle, en `FORK.md`.
+- El informe a Microsoft (<https://www.microsoft.com/en-us/wdsi/filesubmission>,
+  como «Software developer») no se ha enviado. Ahora hay con qué defenderlo.
 - Medido el 2026-11-01 en VirusTotal: instalador **0** (de 44 motores que
   contestaron), zip de Windows **1/68**, `.exe` de dentro **1/71**. El único
   que objeta en los tres sitios es Microsoft, con Wacatac`!ml`, y sólo por el
