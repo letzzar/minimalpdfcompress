@@ -2,7 +2,7 @@
 
 Estado al final de la última sesión. Leer al empezar, actualizar al terminar.
 
-**Última actualización:** 2026-11-01
+**Última actualización:** 2026-11-02
 
 ## Dónde estamos
 
@@ -89,6 +89,28 @@ reinicio.
 - **El `DropZone` pedía «Segoe UI» a pelo**, saltándose `styles.FONT_FAMILY`,
   que es «Helvetica» en macOS y «DejaVu Sans» en Linux. Allí Tk caía a la
   fuente por defecto sin avisar.
+- **Marco negro del icono: resuelto.** El arte de upstream traía el fondo
+  negro horneado en las cuatro esquinas de fuera de la pastilla redondeada; no
+  era Tk maltratando el alfa, como sospeché primero. `tools/make_icons.py`
+  regenera `src/assets/icon.png` y `src/pdf.ico` desde `assets/pdf1.png`
+  vaciando el fondo por contigüidad desde las esquinas, que sólo borra lo
+  conectado al borde y deja intacto el logotipo oscuro del centro. Arregla de
+  una vez la ventana, la barra de tareas, el `.exe`, el instalador, el `.icns`
+  de macOS y el icono del `.deb`, porque todos salen de esos dos ficheros.
+- **Medido en VirusTotal el 1 y el 2 de noviembre de 2026:** instalador **0**
+  (de 44 motores que contestaron), zip de Windows **1/68**, `.exe` de dentro
+  **1/71**. El único que objeta es Microsoft, con Wacatac`!ml`, y sólo por el
+  ejecutable: el instalador lleva los mismos bytes y pasa limpio. DeepInstinct
+  y Zillya, que marcaban los artefactos de la 1.10.0, están limpios ahora. Los
+  portables de macOS y Linux no se han medido, y tampoco tendría mucho
+  sentido: los motores de VirusTotal miran sobre todo a Windows.
+- **Qué dispara la detección de Microsoft: medido, no supuesto.** Un
+  hola-mundo de Tkinter compilado con la misma cadena (Nuitka 4.3.3,
+  `--standalone`, plugin de tk, Python 3.13) y sin una línea de nuestro código
+  saca exactamente el mismo `Trojan:Win32/Wacatac.C!ml`, y encima suma a
+  McAfeeD. Es la forma del binario que produce Nuitka, sin firmar; no hay nada
+  que tocar en el proyecto que lo cambie. El experimento, reproducible paso a
+  paso, está en `FORK.md`.
 
 ## En curso
 
@@ -121,36 +143,15 @@ Nada a medias.
 - Firma de código: sigue sin hacerse. Es lo que de verdad termina con las
   heurísticas de aprendizaje automático y con SmartScreen, que es una capa
   aparte y sólo se gana a base de descargas.
-- **Qué dispara la detección de Microsoft: medido, no supuesto.** Un
-  hola-mundo de Tkinter compilado con la misma cadena (Nuitka 4.3.3,
-  `--standalone`, plugin de tk, Python 3.13) y sin una línea de nuestro código
-  saca exactamente el mismo `Trojan:Win32/Wacatac.C!ml`, y encima suma a
-  McAfeeD. Es la forma del binario que produce Nuitka, sin firmar; no hay nada
-  que tocar en el proyecto que lo cambie. El detalle, en `FORK.md`.
-- **Informe enviado a Microsoft el 2026-11-02**, envío
-  `4e71db95-288b-4a27-ad75-265d3b873530`, como «Incorrect detection» sobre
-  `MinimalPDF_Compress.exe` con firmas 1.463.84.0. Las respuestas llegan a
-  letzzar@gmail.com y el estado se consulta en
-  <https://www.microsoft.com/en-us/wdsi/submission/4e71db95-288b-4a27-ad75-265d3b873530>.
-  **Queda anotar el desenlace en `FORK.md`.** Si retiran la detección del
+- **Esperando respuesta de Microsoft al informe de falso positivo.** Enviado el
+  2026-11-02, envío `4e71db95-288b-4a27-ad75-265d3b873530`, como «Incorrect
+  detection» sobre `MinimalPDF_Compress.exe` con firmas 1.463.84.0. El estado
+  se consulta en
+  <https://www.microsoft.com/en-us/wdsi/submission/4e71db95-288b-4a27-ad75-265d3b873530>
+  y la respuesta llega al correo del Director. **Queda anotar el desenlace en
+  `FORK.md`**, que es donde está el expediente. Si retiran la detección del
   ejecutable, el zip se arregla solo: sólo lo marcan por lo que lleva dentro.
-- Medido el 2026-11-01 en VirusTotal: instalador **0** (de 44 motores que
-  contestaron), zip de Windows **1/68**, `.exe` de dentro **1/71**. El único
-  que objeta en los tres sitios es Microsoft, con Wacatac`!ml`, y sólo por el
-  ejecutable: el instalador lleva los mismos bytes y pasa limpio. DeepInstinct
-  y Zillya, que marcaban los artefactos de la 1.10.0, están limpios ahora.
-  Los portables de macOS y Linux no se han medido; tampoco tendría mucho
-  sentido, los motores de VirusTotal miran sobre todo a Windows.
 - `src/dependencies/pdf.ico` no lo referencia nada; anotado, no borrado.
-
-- **Marco negro del icono: resuelto.** El arte de upstream traía el fondo
-  negro horneado en las cuatro esquinas de fuera de la pastilla redondeada; no
-  era Tk maltratando el alfa, como sospeché primero. `tools/make_icons.py`
-  regenera `src/assets/icon.png` y `src/pdf.ico` desde `assets/pdf1.png`
-  vaciando el fondo por contigüidad desde las esquinas, que sólo borra lo
-  conectado al borde y deja intacto el logotipo oscuro del centro. Arregla de
-  una vez la ventana, la barra de tareas, el `.exe`, el instalador, el `.icns`
-  de macOS y el icono del `.deb`, porque todos salen de esos dos ficheros.
 
 ## Decisiones tomadas
 
