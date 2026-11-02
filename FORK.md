@@ -364,6 +364,11 @@ The right channels, in order:
    `Wacatac.C!ml`, which shows the verdict is about Nuitka's output shape and
    not about this application. Microsoft has cleared this kind of submission in
    hours for other projects.
+
+   **Submitted for 1.11.0 on 2026-11-02**, submission
+   `4e71db95-288b-4a27-ad75-265d3b873530`, as "Incorrect detection" against
+   `MinimalPDF_Compress.exe` with signature version 1.463.84.0. Outcome to be
+   recorded here when Microsoft answers.
 2. The other engines' individual false-positive forms.
 3. Upstream issue [#50](https://github.com/deminimis/minimalpdfcompress/issues/50),
    which is already open and tracking this.

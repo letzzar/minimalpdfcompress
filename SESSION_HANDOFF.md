@@ -127,8 +127,13 @@ Nada a medias.
   saca exactamente el mismo `Trojan:Win32/Wacatac.C!ml`, y encima suma a
   McAfeeD. Es la forma del binario que produce Nuitka, sin firmar; no hay nada
   que tocar en el proyecto que lo cambie. El detalle, en `FORK.md`.
-- El informe a Microsoft (<https://www.microsoft.com/en-us/wdsi/filesubmission>,
-  como «Software developer») no se ha enviado. Ahora hay con qué defenderlo.
+- **Informe enviado a Microsoft el 2026-11-02**, envío
+  `4e71db95-288b-4a27-ad75-265d3b873530`, como «Incorrect detection» sobre
+  `MinimalPDF_Compress.exe` con firmas 1.463.84.0. Las respuestas llegan a
+  letzzar@gmail.com y el estado se consulta en
+  <https://www.microsoft.com/en-us/wdsi/submission/4e71db95-288b-4a27-ad75-265d3b873530>.
+  **Queda anotar el desenlace en `FORK.md`.** Si retiran la detección del
+  ejecutable, el zip se arregla solo: sólo lo marcan por lo que lleva dentro.
 - Medido el 2026-11-01 en VirusTotal: instalador **0** (de 44 motores que
   contestaron), zip de Windows **1/68**, `.exe` de dentro **1/71**. El único
   que objeta en los tres sitios es Microsoft, con Wacatac`!ml`, y sólo por el
